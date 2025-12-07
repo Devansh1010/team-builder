@@ -62,7 +62,7 @@ const RegisterPage: React.FC = () => {
                     description: res.data.message
                 })
             }
-            router.replace("/")
+            router.replace("/auth/verify-code")
         } catch (error: any) {
             let axiosError = error as AxiosError
             console.error("catch sign-up.tsx: Registration error:", error);

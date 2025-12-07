@@ -15,21 +15,20 @@ export async function GET(req: NextRequest) {
 
         await dbConnect()
 
-        const allBatches = await Set.find({}).sort({createdAt: -1})
+        const count = await Set.countDocuments();
+        console.log(count);
 
-        console.log(allBatches)
-
-        if (allBatches.length === 0) return createResponse({
+        if (count === 0) return createResponse({
             success: false,
             message: "No Batches found",
-            data: []
+            data: count
         }, StatusCode.NOT_FOUND)
 
 
         return createResponse({
             success: true,
             message: "Batches found",
-            data: allBatches
+            data: count
         }, StatusCode.OK)
 
 
@@ -39,7 +38,7 @@ export async function GET(req: NextRequest) {
         return createResponse(
             {
                 success: false,
-                message: "Error Creating Batch",
+                message: "Error Feetching Batch Count",
                 error: {
                     code: "500",
                     message: "Internal Server Error",
