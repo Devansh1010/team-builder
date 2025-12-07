@@ -1,3 +1,4 @@
+import { auth } from "@/auth";
 import { createResponse, StatusCode } from "@/lib/createResponce";
 import { dbConnect } from "@/lib/dbConnect";
 import Set from "@/models/users.model";
@@ -5,7 +6,13 @@ import { NextRequest } from "next/server";
 
 export async function POST(req: NextRequest) {
   try {
-    //! User Validation is pending
+    const session = await auth()
+
+    if (!session || !session?.user) return createResponse({
+      success: false,
+      message: "User Not Allowed"
+    }, StatusCode.UNAUTHORIZED)
+
     const body = await req.json();
     const emailArray = body.data
     const batch_name = body.name.trim()
@@ -33,12 +40,12 @@ export async function POST(req: NextRequest) {
     await dbConnect();
 
     //check if already exist or not
-    const isExist = await Set.findOne({batch_name})
-    
-    if(isExist) return createResponse(
-        { success: false, message: "Batch Already Exist" },
-        StatusCode.BAD_REQUEST
-      );
+    const isExist = await Set.findOne({ batch_name })
+
+    if (isExist) return createResponse(
+      { success: false, message: "Batch Already Exist" },
+      StatusCode.BAD_REQUEST
+    );
 
     // Create batch with emails directly
     const set = await Set.create({

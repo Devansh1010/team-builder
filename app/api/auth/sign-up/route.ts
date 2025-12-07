@@ -1,8 +1,8 @@
 import bcrypt from 'bcryptjs'
-// import { sendVerification } from "@/helpers/sendVerificationEmail";
 import { dbConnect } from '@/lib/dbConnect';
 import Admin from "@/models/admin.model";
 import { createResponse, StatusCode } from '@/lib/createResponce';
+import { sendVerification } from '@/helpers/sendVerificationEmail';
 
 export async function POST(request: Request) {
     await dbConnect()
@@ -18,17 +18,17 @@ export async function POST(request: Request) {
         })
 
         if (!username || !email || !password || !fname || !lname) {
-            return Response.json({
+            return createResponse({
                 success: false,
                 message: "missing fields"
-            }, { status: 401 })
+            }, StatusCode.UNAUTHORIZED)
         }
 
         if (existingUserVerifiedByUsername) {
-            return Response.json({
+            return createResponse({
                 success: false,
                 message: "Username is already taken"
-            }, { status: 400 })
+            }, StatusCode.BAD_REQUEST)
         }
 
         const existingUserByEmail = await Admin.findOne({ email })
@@ -40,11 +40,10 @@ export async function POST(request: Request) {
 
         if (existingUserByEmail) {
             if (existingUserByEmail.isVerified) {
-                return Response.json({
+                return createResponse({
                     success: false,
                     message: "User is verified"
-                }, { status: 405 });
-
+                }, StatusCode.FORBIDDEN)
             } else {
                 const hashedPassword = await bcrypt.hash(password, 10)
 
@@ -66,25 +65,25 @@ export async function POST(request: Request) {
                     message: "User not updated"
                 }, StatusCode.CONFLICT)
 
-                // const emailResponce = await sendVerification(email, username, verifyCode)
+                const emailResponce = await sendVerification(email, username, verifyCode)
 
-                // if (!emailResponce.success) {
-                //     return Response.json({
-                //         success: false,
-                //         message: emailResponce.message
-                //     }, { status: 501 })
-                // }
+                if (!emailResponce.success) {
+                    return createResponse({
+                        success: false,
+                        message: emailResponce.message
+                    }, StatusCode.INTERNAL_ERROR)
+                }
 
-                return Response.json({
+                return createResponse({
                     success: true,
                     message: "Verify Code sent! Please Verify"
-                }, { status: 200 })
-
+                }, StatusCode.OK)
             }
 
         } else {
 
             const hashedPassword = await bcrypt.hash(password, 10)
+
             const expiryDate = new Date()
             expiryDate.setHours(expiryDate.getHours() + 1)
 
@@ -101,33 +100,26 @@ export async function POST(request: Request) {
 
             console.log(newUser)
 
-            // const emailResponce = await sendVerification(email, username, verifyCode)
+            const emailResponce = await sendVerification(email, username, verifyCode)
 
-            // if (!emailResponce.success) {
-            //     return Response.json({
-            //         success: false,
-            //         message: emailResponce.message
-            //     }, { status: 501 })
-            // }
+            if (!emailResponce.success) {
+                return createResponse({
+                    success: false,
+                    message: emailResponce.message
+                }, StatusCode.INTERNAL_ERROR)
+            }
 
-            return Response.json({
+            return createResponse({
                 success: true,
                 message: "Verify Code sent! Please Verify"
-            }, { status: 200 })
+            }, StatusCode.OK)
         }
-
-
 
     } catch (error) {
         console.log("Error registering user", error)
-        return Response.json({
+        return createResponse({
             success: false,
             message: "Error while registering user"
-        },
-            {
-                status: 500
-            }
-        )
+        }, StatusCode.INTERNAL_ERROR)
     }
 }
-
