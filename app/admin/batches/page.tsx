@@ -25,7 +25,7 @@ const Page = () => {
             try {
                 const res = await axios.get('/api/v1/batch/getAllBatches')
                 if (res.data?.success) {
-                    toast.success(res.data.message)
+                    // toast.success(res.data.message)
                     setBatches(res.data.data || [])
                 }
             } catch (error) {
