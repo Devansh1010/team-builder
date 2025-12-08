@@ -3,6 +3,7 @@ import { dbConnect } from "@/lib/dbConnect";
 import Set from "@/models/users.model";
 import { NextRequest } from "next/server";
 import { auth } from "@/auth"
+import valkey from "@/lib/valkey";
 
 export async function GET(req: NextRequest) {
     try {
@@ -15,8 +16,18 @@ export async function GET(req: NextRequest) {
 
         await dbConnect()
 
+        const cachedCount = await valkey.get("batch_count");
+
+        if (cachedCount !== null) {
+            console.log("📦 Returning cached batch count");
+            return createResponse({
+                success: true,
+                message: "Batches found (cached)",
+                data: Number(cachedCount)
+            }, StatusCode.OK)
+        }
+
         const count = await Set.countDocuments();
-        console.log(count);
 
         if (count === 0) return createResponse({
             success: false,
@@ -24,6 +35,7 @@ export async function GET(req: NextRequest) {
             data: count
         }, StatusCode.NOT_FOUND)
 
+        await valkey.setEx("batch_count", 600, String(count));
 
         return createResponse({
             success: true,

@@ -3,6 +3,7 @@ import { dbConnect } from "@/lib/dbConnect";
 import Set from "@/models/users.model";
 import { NextRequest } from "next/server";
 import { auth } from "@/auth"
+import valkey from "@/lib/valkey";
 
 export async function POST(req: NextRequest) {
     try {
@@ -19,7 +20,7 @@ export async function POST(req: NextRequest) {
         const batchId = searchParams.get("batchId");
         console.log("BatchId:- ", batchId)
 
-        const {name, limit} = await req.json()
+        const { name, limit } = await req.json()
 
         if (!batchId || batchId === "undefined" || batchId === "null") {
             return createResponse({
@@ -31,10 +32,13 @@ export async function POST(req: NextRequest) {
 
         await dbConnect()
 
-        const batch = await Set.findOneAndUpdate({ _id: batchId },{
+        //remove the older count
+        await valkey.del("batch_count");
+
+        const batch = await Set.findOneAndUpdate({ _id: batchId }, {
             batch_name: name,
             limit
-        }, {new: true});
+        }, { new: true });
 
         if (!batch) return createResponse({
             success: false,

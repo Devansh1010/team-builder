@@ -3,7 +3,7 @@ import { createResponse, StatusCode } from "@/lib/createResponce";
 import { dbConnect } from "@/lib/dbConnect";
 import Set from "@/models/users.model";
 import { NextRequest } from "next/server";
-
+import valkey from "@/lib/valkey";
 export async function POST(req: NextRequest) {
   try {
     const session = await auth()
@@ -70,6 +70,9 @@ export async function POST(req: NextRequest) {
       StatusCode.BAD_REQUEST
     );
 
+    //remove the old count
+    await valkey.del("batch_count");
+    
     // Create batch with emails directly
     const set = await Set.create({
       batch_name,
