@@ -17,18 +17,25 @@ export async function GET(req: NextRequest) {
 
         // Get specific query parameter
         const batchId = searchParams.get("batchId");
+        console.log("BatchId:- ", batchId)
+
+        if (!batchId || batchId === "undefined" || batchId === "null") {
+            return createResponse({
+                success: false,
+                message: "Invalid or missing batchId",
+                data: {}
+            }, StatusCode.BAD_REQUEST);
+        }
 
         await dbConnect()
 
-        const batch = await Set.findOne({_id: batchId});
-     
+        const batch = await Set.findOne({ _id: batchId });
 
         if (!batch) return createResponse({
             success: false,
             message: "Batch not found",
             data: {}
         }, StatusCode.NOT_FOUND)
-
 
         return createResponse({
             success: true,
