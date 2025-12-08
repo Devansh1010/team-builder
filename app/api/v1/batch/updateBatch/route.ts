@@ -4,7 +4,7 @@ import Set from "@/models/users.model";
 import { NextRequest } from "next/server";
 import { auth } from "@/auth"
 
-export async function GET(req: NextRequest) {
+export async function POST(req: NextRequest) {
     try {
         const session = await auth()
 
@@ -13,21 +13,39 @@ export async function GET(req: NextRequest) {
             message: "User Not Allowed"
         }, StatusCode.UNAUTHORIZED)
 
+        const { searchParams } = new URL(req.url);
+
+        // Get specific query parameter
+        const batchId = searchParams.get("batchId");
+        console.log("BatchId:- ", batchId)
+
+        const {name, limit} = await req.json()
+
+        if (!batchId || batchId === "undefined" || batchId === "null") {
+            return createResponse({
+                success: false,
+                message: "Invalid or missing batchId",
+                data: {}
+            }, StatusCode.BAD_REQUEST);
+        }
+
         await dbConnect()
 
-        const allBatches = await Set.find({}).sort({createdAt: -1})
+        const batch = await Set.findOneAndUpdate({ _id: batchId },{
+            batch_name: name,
+            limit
+        }, {new: true});
 
-        if (allBatches.length === 0) return createResponse({
+        if (!batch) return createResponse({
             success: false,
-            message: "No Batches found",
-            data: []
+            message: "Batch not updated",
+            data: {}
         }, StatusCode.NOT_FOUND)
-
 
         return createResponse({
             success: true,
-            message: "Batches found",
-            data: allBatches
+            message: "Batch updated successfully",
+            data: batch
         }, StatusCode.OK)
 
 
@@ -37,7 +55,7 @@ export async function GET(req: NextRequest) {
         return createResponse(
             {
                 success: false,
-                message: "Error Creating Batch",
+                message: "Error Feetching Batch Count",
                 error: {
                     code: "500",
                     message: "Internal Server Error",

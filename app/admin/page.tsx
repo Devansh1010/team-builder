@@ -2,12 +2,15 @@
 import DashboardCard from '@/components/DashboardCard'
 
 import { Button } from '@/components/ui/button'
+import axios from 'axios'
 import { Moon, Sun, User } from 'lucide-react'
-import { title } from 'process'
+
 import { useState } from 'react'
 import { toast } from "sonner"
+
 const page = () => {
     const [theme, setTheme] = useState(true)
+
     return (
         <div className='w-full px-10 py-6'>
             <div className='w-full flex justify-between'>
@@ -21,7 +24,7 @@ const page = () => {
                 </div>
 
                 <div className="flex gap-3">
-                  
+
                     <Button
                         variant="ghost"
                         className="hover:bg-gray-100"

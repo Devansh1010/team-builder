@@ -29,53 +29,39 @@ import {
     FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { formSchema, FormValues } from "@/lib/zod";
+import { UpdateFormValues, updateFormSchema } from "@/lib/zod";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 import { redirect } from "next/navigation";
 
 
 
-const CreateBatch = () => {
+const UpdateBatch = ({ id }: { id: string }) => {
     const [isSubmittingForm, setIsSubmittingForm] = useState(false)
 
 
-    const form = useForm<FormValues>({
-        resolver: zodResolver(formSchema),
+    const form = useForm<UpdateFormValues>({
+        resolver: zodResolver(updateFormSchema),
         defaultValues: {
-            name: "",       // empty string by default
+            name: "",       
             limit: 4,
-            file: undefined as unknown as FileList, // file input starts empty
+
         },
     });
 
-    const onSubmit = async (data: FormValues) => {
+    const onSubmit = async (data: UpdateFormValues) => {
         setIsSubmittingForm(true)
-        const file = data.file[0];
+
         try {
-            if (file) {
 
-                Papa.parse(file, {
-                    header: true, // Parse first row as header
-                    skipEmptyLines: true,
-                    complete: async (result) => {
+            const res = await axios.post(`/api/v1/batch/updateBatch?batchId=${id}`, data)
 
-                        const res = await axios.post('/api/v1/batch/createBatch', { data: result.data, name: data.name, limit: Number(data.limit) })
-
-                        console.log(res)
-                        if (res.data.success) {
-                            toast.success("All users are saved in database")
-                            redirect('/admin/batches')
-
-                        } else {
-                            toast.error(res.data.message)
-                        }
-
-                    }
-                })
-            };
+            if (res.data.success) {
+                toast.success('Batch Updated Successfully')
+                redirect('/admin/batches')
+            }
         } catch (error: any) {
-            toast.error("Error Parsing File", { description: error })
+            toast.error("Error Updating Batch", { description: error })
         } finally {
             setIsSubmittingForm(false)
         }
@@ -88,7 +74,7 @@ const CreateBatch = () => {
                 <DialogTrigger asChild>
                     <Button variant="default" className="flex gap-2">
                         <Plus />
-                        Create New Batch
+                        Update Batch
                     </Button>
                 </DialogTrigger>
                 <DialogContent>
@@ -99,7 +85,7 @@ const CreateBatch = () => {
                                 <div className="shadow-lg rounded-xl p-8 w-full max-w-md">
                                     {/* Heading */}
                                     <h1 className="text-3xl font-bold mb-6 text-center ">
-                                        Create New Batch
+                                        Update Batch
                                     </h1>
 
                                     {/* Form */}
@@ -142,30 +128,8 @@ const CreateBatch = () => {
                                                     </FormItem>
                                                 )}
                                             />
-                                            <FormField
-                                                control={form.control}
-                                                name="file"
-                                                render={({ field }) => (
-                                                    <FormItem>
-                                                        <FormLabel>CSV File</FormLabel>
-                                                        <FormControl>
-                                                            <Input
-                                                                type="file"
-                                                                accept=".csv"
-                                                                placeholder="Choose File" onChange={(e) => {
-                                                                    const files = e.target.files;
-                                                                    field.onChange(files); // store FileList in RHF state
-                                                                }}
-                                                            />
-                                                        </FormControl>
-                                                        <FormDescription>
-                                                            Select your CSV file
-                                                        </FormDescription>
-                                                        <FormMessage />
-                                                    </FormItem>
-                                                )}
-                                            />
-                                            <Button type="submit" disabled={isSubmittingForm} className="cursor-pointer">Submit</Button>
+                                            <Button type="submit" disabled={isSubmittingForm}
+                                            className="cursor-pointer">Submit</Button>
                                         </form>
                                     </Form>
                                 </div>
@@ -179,4 +143,4 @@ const CreateBatch = () => {
     )
 }
 
-export default CreateBatch
+export default UpdateBatch

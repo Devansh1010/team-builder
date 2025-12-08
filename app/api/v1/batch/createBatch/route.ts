@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const emailArray = body.data
     const batch_name = body.name.trim()
-
+    const limit = Number(body.limit)
     //Ensure if data is Array or not
     if (!Array.isArray(emailArray)) {
       return createResponse(
@@ -25,10 +25,33 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    function extractEmail(obj: Record<string, any>) {
+      const emailKeys = [
+        "email",
+        "emails",
+        "e-mail",
+        "mail",
+        "useremail",
+        "user_email",
+        "contact",
+      ];
+
+      for (const key of Object.keys(obj)) {
+        const normalized = key.toLowerCase().replace(/\s+/g, "");
+        if (emailKeys.includes(normalized)) {
+          return obj[key];
+        }
+      }
+
+      return null;
+    }
+
+
     // Extract emails safely
     const emails = emailArray
-      .map((obj: Record<string, any>) => obj.email)
-      .filter(Boolean); // remove undefined/null
+      .map((obj: Record<string, any>) => extractEmail(obj))
+      .filter((email) => typeof email === "string" && email.trim() !== "");
+
 
     if (emails.length === 0) {
       return createResponse(
@@ -50,7 +73,7 @@ export async function POST(req: NextRequest) {
     // Create batch with emails directly
     const set = await Set.create({
       batch_name,
-      limit: body.limit,
+      limit,
       users: emails,
     });
 
