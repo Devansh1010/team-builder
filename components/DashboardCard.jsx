@@ -35,7 +35,7 @@ const DashboardCard = () => {
     }, [])
 
     return (
-        <div className='flex my-5 min-h-60 w-full items-center gap-2'>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 my-5 w-full">
 
             <CardTemplete
                 title="Users"
@@ -50,7 +50,6 @@ const DashboardCard = () => {
                     title="Batches"
                     description="This Month"
                     icon={<Users className="w-6 h-6 text-green-400" />}
-
                     content={
                         isGettingBatchCount ? (
                             <Loader2 className="w-6 h-6 animate-spin text-green-500" />
@@ -60,22 +59,20 @@ const DashboardCard = () => {
                             <div>{batchCount}</div>
                         )
                     }
-
                     footer="Compared to last month"
                 />
             </Link>
-
 
             <CardTemplete
                 title="Courses"
                 description="Configuration"
                 icon={<GalleryHorizontalEnd className="w-6 h-6 text-purple-400" />}
-
                 content="12"
                 footer="Custom rules applied"
             />
 
         </div>
+
     )
 }
 

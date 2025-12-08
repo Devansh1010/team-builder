@@ -2,7 +2,6 @@
 import DashboardCard from '@/components/DashboardCard'
 
 import { Button } from '@/components/ui/button'
-import axios from 'axios'
 import { Moon, Sun, User } from 'lucide-react'
 import { useTheme } from 'next-themes'
 
