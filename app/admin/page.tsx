@@ -1,13 +1,9 @@
 'use client'
 import DashboardCard from '@/components/DashboardCard'
 
-import { Button } from '@/components/ui/button'
-import { Moon, Sun, User } from 'lucide-react'
-import { useTheme } from 'next-themes'
-
 
 const page = () => {
-    const { theme, setTheme } = useTheme()
+    
 
     return (
         <div className='w-full px-10 py-6'>
@@ -16,16 +12,6 @@ const page = () => {
                     <h1 className="text-2xl font-semibold ">
                         Admin Dashboard
                     </h1>
-
-                </div>
-
-                <div className="flex gap-3 ">
-
-                    <Button
-                        onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-                    >
-                        {theme === "light" ? <Moon /> : <Sun />}
-                    </Button>
                 </div>
 
             </div>
