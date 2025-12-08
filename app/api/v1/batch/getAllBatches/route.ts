@@ -3,9 +3,11 @@ import { dbConnect } from "@/lib/dbConnect";
 import Set from "@/models/users.model";
 import { NextRequest } from "next/server";
 import { auth } from "@/auth"
+import valkey from '@/lib/valkey'
 
 export async function GET(req: NextRequest) {
     try {
+
         const session = await auth()
 
         if (!session || !session?.user) return createResponse({
@@ -15,7 +17,17 @@ export async function GET(req: NextRequest) {
 
         await dbConnect()
 
-        const allBatches = await Set.find({}).sort({createdAt: -1})
+        //try to fetch from catchMemory
+        const cached = await valkey.get("all_batches");
+        if (cached) {
+            return createResponse({
+                success: true,
+                message: "Batches found (cached)",
+                data: JSON.parse(cached),
+            }, StatusCode.OK);
+        }
+
+        const allBatches = await Set.find({}).sort({ createdAt: -1 })
 
         if (allBatches.length === 0) return createResponse({
             success: false,
@@ -23,6 +35,8 @@ export async function GET(req: NextRequest) {
             data: []
         }, StatusCode.NOT_FOUND)
 
+
+        await valkey.set("all_batches", JSON.stringify(allBatches));
 
         return createResponse({
             success: true,

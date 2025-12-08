@@ -91,6 +91,8 @@ export async function POST(req: NextRequest) {
     //remove the old count
     await valkey.del("batch_count");
     await valkey.del("user_count");
+    await valkey.del("all_batches");
+
 
     //Remove duplicate emails
     const uniqueEmails = [...new Set(emails)];
