@@ -18,9 +18,7 @@ const page = () => {
                     <h1 className="text-3xl font-bold ">
                         Admin Dashboard
                     </h1>
-                    <p className="text-gray-600">
-                        Monitor performance, insights, and system activity at a glance
-                    </p>
+
                 </div>
 
                 <div className="flex gap-3">

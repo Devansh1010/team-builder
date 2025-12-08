@@ -51,11 +51,8 @@ const UpdateBatch = ({ id }: { id: string }) => {
 
     const onSubmit = async (data: UpdateFormValues) => {
         setIsSubmittingForm(true)
-
         try {
-
             const res = await axios.post(`/api/v1/batch/updateBatch?batchId=${id}`, data)
-
             if (res.data.success) {
                 toast.success('Batch Updated Successfully')
                 redirect('/admin/batches')

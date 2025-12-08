@@ -101,14 +101,14 @@ const Page = () => {
                                             <div className="flex items-end justify-between">
                                                 <div className="flex items-center gap-2">
                                                     <Users className="w-6 h-6 text-neutral-500 dark:text-neutral-400" />
-                                                    <p className="text-4xl font-bold text-neutral-800 dark:text-neutral-100 leading-tight">
+                                                    <div className="text-4xl font-bold text-neutral-800 dark:text-neutral-100 leading-tight">
                                                         {batch.users.length}
-                                                    </p>
+                                                    </div>
                                                 </div>
 
-                                                <p className="text-sm text-neutral-500 dark:text-neutral-400">
+                                                <div className="text-sm text-neutral-500 dark:text-neutral-400">
                                                     Total Users
-                                                </p>
+                                                </div>
                                             </div>
                                         </Card>
                                     </Link>

@@ -103,9 +103,9 @@ export default function Page({ params }: { params: { id: string } }) {
                             <h1 className="text-3xl font-semibold text-neutral-900 dark:text-neutral-100">
                                 {batch.batch_name}
                             </h1>
-                            <p className="text-neutral-500 dark:text-neutral-400 mt-1 text-sm">
+                            <div className="text-neutral-500 dark:text-neutral-400 mt-1 text-sm">
                                 Batch Details Overview
-                            </p>
+                            </div>
                         </div>
 
                         <div className="cursor-pointer">
