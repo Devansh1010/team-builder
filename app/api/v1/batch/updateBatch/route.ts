@@ -33,6 +33,8 @@ export async function POST(req: NextRequest) {
         await dbConnect()
 
         //remove the older count
+        // ! not required now cause we just update name and limit not 
+        // ! count of the batches
         await valkey.del("batch_count");
 
         const batch = await Set.findOneAndUpdate({ _id: batchId }, {

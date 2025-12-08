@@ -3,6 +3,7 @@ import { dbConnect } from "@/lib/dbConnect";
 import Set from "@/models/users.model";
 import { NextRequest } from "next/server";
 import { auth } from "@/auth"
+import valkey from '@/lib/valkey'
 
 export async function GET(req: NextRequest) {
     try {
@@ -15,8 +16,19 @@ export async function GET(req: NextRequest) {
 
         await dbConnect()
 
+        const cachedCount = await valkey.get('user_count')
+
+        if (cachedCount !== null) {
+            console.log("📦 Returning cached user count");
+            return createResponse({
+                success: true,
+                message: "Users found (cached)",
+                data: Number(cachedCount)
+            }, StatusCode.OK)
+        }
+
         const batchArray = await Set.find({});
-        
+
 
         if (batchArray.length === 0) return createResponse({
             success: false,
@@ -24,8 +36,9 @@ export async function GET(req: NextRequest) {
         }, StatusCode.NOT_FOUND)
 
 
-       const count = batchArray.reduce((acc, item) => acc + item.users.length, 0)
+        const count = batchArray.reduce((acc, item) => acc + item.users.length, 0)
 
+        await valkey.setEx('user_count', 600, String(count))
 
         return createResponse({
             success: true,
