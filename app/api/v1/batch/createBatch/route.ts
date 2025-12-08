@@ -15,8 +15,26 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json();
     const emailArray = body.data
+
     const batch_name = body.name.trim()
+    
+    if (!batch_name) {
+      return createResponse({
+        success: false,
+        message: "Batch name required"
+      }, StatusCode.BAD_REQUEST);
+    }
+
     const limit = Number(body.limit)
+
+    if (!limit || limit <= 0) {
+      return createResponse({
+        success: false,
+        message: "Limit must be a positive number"
+      }, StatusCode.BAD_REQUEST)
+    }
+
+
     //Ensure if data is Array or not
     if (!Array.isArray(emailArray)) {
       return createResponse(
@@ -73,12 +91,15 @@ export async function POST(req: NextRequest) {
     //remove the old count
     await valkey.del("batch_count");
     await valkey.del("user_count");
-    
+
+    //Remove duplicate emails
+    const uniqueEmails = [...new Set(emails)];
+
     // Create batch with emails directly
     const set = await Set.create({
       batch_name,
       limit,
-      users: emails,
+      users: uniqueEmails,
     });
 
     if (!set) {
