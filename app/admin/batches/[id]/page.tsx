@@ -10,6 +10,7 @@ import { columns } from "./columns"
 import { DataTable } from "./data-table"
 import { Button } from "@/components/ui/button";
 import UpdateBatch from "@/components/batch/updateBatch";
+import DeleteBatch from "@/components/batch/deleteBatch";
 
 
 
@@ -108,8 +109,11 @@ export default function Page({ params }: { params: { id: string } }) {
                             </div>
                         </div>
 
-                        <div className="cursor-pointer">
-                           <UpdateBatch id={`${resolvedId}`}/>  
+                        <div className="cursor-pointer flex gap-3">
+                            <UpdateBatch id={`${resolvedId}`} />
+
+                            <DeleteBatch id={`${resolvedId}`} />
+
                         </div>
 
                     </div>
@@ -133,7 +137,7 @@ export default function Page({ params }: { params: { id: string } }) {
 
                     </div>
 
-                    
+
                     {users.length != 0 && <DataTable columns={columns} data={users} />}
 
                 </div>
