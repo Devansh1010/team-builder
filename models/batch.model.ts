@@ -1,13 +1,13 @@
 import { Schema, model, models } from 'mongoose';
 
-export interface IUsers {
+export interface IBatch {
   id?: Schema.Types.ObjectId
   batch_name: string,
   limit: number,
   users: string[]
 }
 
-const setSchema = new Schema<IUsers>({
+const setSchema = new Schema<IBatch>({
   
   batch_name: {
     type: String,
@@ -27,7 +27,7 @@ const setSchema = new Schema<IUsers>({
   ]
 }, { timestamps: true });
 
-const Set = models.Set || model<IUsers>('Set', setSchema)
+const Set = models.Set || model<IBatch>('Set', setSchema)
 
 export default Set
 

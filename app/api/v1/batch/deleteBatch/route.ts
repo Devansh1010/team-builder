@@ -1,6 +1,6 @@
 import { createResponse, StatusCode } from "@/lib/createResponce";
 import { dbConnect } from "@/lib/dbConnect";
-import Set from "@/models/users.model";
+import Set from "@/models/batch.model";
 import { NextRequest } from "next/server";
 import { auth } from "@/auth"
 import valkey from "@/lib/valkey";

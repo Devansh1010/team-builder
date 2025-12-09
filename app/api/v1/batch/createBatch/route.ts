@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 import { createResponse, StatusCode } from "@/lib/createResponce";
 import { dbConnect } from "@/lib/dbConnect";
-import Set from "@/models/users.model";
+import Set from "@/models/batch.model";
 import { NextRequest } from "next/server";
 import valkey from "@/lib/valkey";
 export async function POST(req: NextRequest) {
