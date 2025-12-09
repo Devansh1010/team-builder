@@ -26,6 +26,9 @@ export interface IUser {
     email: string,
     password: string,
     avatar: string,
+    isVerified: boolean,
+    verifyCode: string,
+    verifyExpiry: Date,
     groups: IGroup[],
     invitation: IInvitation[]
 }
@@ -34,7 +37,8 @@ const userSchema = new Schema<IUser>({
     username: {
         type: String,
         min: [2, 'Minimum 2 Character required in Username'],
-        required: [true, 'Username Required']
+        required: [true, 'Username Required'],
+        unique: true
     },
 
     email: {
@@ -51,6 +55,20 @@ const userSchema = new Schema<IUser>({
     avatar: {
         type: String,
         default: "",
+    },
+
+    isVerified: {
+        type: Boolean,
+        required: true,
+        default: false
+    },
+
+    verifyCode:{
+        type: String
+    },
+
+    verifyExpiry:{
+        type: Date
     },
 
     groups: [
