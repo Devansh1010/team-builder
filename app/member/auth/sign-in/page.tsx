@@ -12,28 +12,26 @@ import { Button } from '@/components/ui/button';
 import { Loader2Icon } from "lucide-react"
 import Link from 'next/link';
 import { signIn } from 'next-auth/react';
+import axios from 'axios';
 
 
 const RegisterPage: React.FC = () => {
 
     const [isSubmiting, setIsSubmiting] = React.useState(false);
 
+
     const router = useRouter();
+
 
     const onSubmit = async (data: z.infer<typeof signInSchema>) => {
         setIsSubmiting(true)
 
-        const res = await signIn("credentials", {
-            redirect: false,
-            email: data.identifier,
-            password: data.password
-        })
+        const res = await axios.post('/api/member/user/sign-in', {username: data.identifier, password: data.password})
 
-        console.log("SignIn responce auth", res)
+        console.log("SignIn responce auth", res.data)
 
-
-        if (res?.url) {
-            router.replace("/admin")
+        if (res?.data.success) {
+            router.replace("/member/dashboard")
         }
 
         setIsSubmiting(false)

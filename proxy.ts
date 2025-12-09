@@ -4,41 +4,47 @@ import type { NextRequest } from "next/server";
 import { cookies } from "next/headers";
 
 export async function proxy(req: NextRequest) {
-  const session = await auth();
-   const token = (await cookies()).get("authToken")?.value;
+  const session = await auth(); // ADMIN LOGIN
+  const token = (await cookies()).get("authToken")?.value; // MEMBER LOGIN
 
   const { pathname } = req.nextUrl;
 
-  // PUBLIC ROUTES
-  const adminPublicPaths = [
-    "/admin",
-  ];
+  // ADMIN ROUTES
+  const isAdminRoute = pathname.startsWith("/admin");
+  const isAdminAuthPage = pathname === "/admin" || pathname === "/admin/sign-in";
 
-  const memberPublicPath = [
-    '/member/auth/sign-in',
-    '/member/auth/sign-up',
-  ]
+  // MEMBER ROUTES
+  const isMemberRoute = pathname.startsWith("/member");
+  const isMemberAuthPage = pathname.startsWith("/member/auth");
 
-  const isAdminPublic = adminPublicPaths.includes(pathname);
-  const isMemberPublic = memberPublicPath.includes(pathname);
+  // -----------------------------
+  // ADMIN LOGIC
+  // -----------------------------
+  if (isAdminRoute) {
+    // 1. If admin is NOT logged in → allow only admin login page
+    if (!session && !isAdminAuthPage) {
+      return NextResponse.redirect(new URL("/admin/sign-in", req.url));
+    }
 
-  if (!isAdminPublic && !session) {
-    // Protected route & not logged in
-    return NextResponse.redirect(new URL("/member/auth/sign-in", req.nextUrl.origin));
+    // 2. If admin IS logged in → block login page
+    if (session && isAdminAuthPage) {
+      return NextResponse.redirect(new URL("/admin/dashboard", req.url));
+    }
   }
 
-   if (!isMemberPublic && !token) {
-    // Protected route & not logged in
-    return NextResponse.redirect(new URL("/admin", req.nextUrl.origin));
-  }
+  // -----------------------------
+  // MEMBER LOGIC
+  // -----------------------------
+  if (isMemberRoute) {
+    // 1. If member is NOT logged in → allow only member auth pages
+    if (!token && !isMemberAuthPage) {
+      return NextResponse.redirect(new URL("/member/auth/sign-in", req.url));
+    }
 
-  if (isAdminPublic && session) {
-    // Already logged in & visiting sign-in or sign-up
-    return NextResponse.redirect(new URL("/admin/dashboard", req.nextUrl.origin));
-  }
-  if (isMemberPublic && token) {
-    // Already logged in & visiting sign-in or sign-up
-    return NextResponse.redirect(new URL("/member/dashboard", req.nextUrl.origin));
+    // 2. If member IS logged in → block member login page
+    if (token && isMemberAuthPage) {
+      return NextResponse.redirect(new URL("/member/dashboard", req.url));
+    }
   }
 
   return NextResponse.next();
@@ -49,6 +55,7 @@ export const config = {
     "/auth/sign-up",
     "/profile",
     "/admin/:path*",
-    "/"
+    "/",
+    '/member/:path*'
   ],
 };

@@ -24,6 +24,8 @@ export async function POST(req: NextRequest) {
 
     const validatedUser = username.trim().toLowerCase()
 
+    await dbConnect()
+
     const isValidUser = await UserData.findOne({
         $or: [
             { username: validatedUser },
