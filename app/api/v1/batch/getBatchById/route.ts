@@ -1,6 +1,6 @@
 import { createResponse, StatusCode } from "@/lib/createResponce";
 import { dbConnect } from "@/lib/dbConnect";
-import Set from "@/models/batch.model";
+import Batch from "@/models/batch.model";
 import { NextRequest } from "next/server";
 import { auth } from "@/auth"
 
@@ -29,7 +29,7 @@ export async function GET(req: NextRequest) {
 
         await dbConnect()
 
-        const batch = await Set.findOne({ _id: batchId });
+        const batch = await Batch.findOne({ _id: batchId });
 
         if (!batch) return createResponse({
             success: false,

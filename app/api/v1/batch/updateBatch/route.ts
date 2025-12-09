@@ -1,6 +1,6 @@
 import { createResponse, StatusCode } from "@/lib/createResponce";
 import { dbConnect } from "@/lib/dbConnect";
-import Set from "@/models/batch.model";
+import Batch from "@/models/batch.model";
 import { NextRequest } from "next/server";
 import { auth } from "@/auth"
 import valkey from "@/lib/valkey";
@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
         await valkey.del("batch_count"); // ! not required now cause we just update name and limit not count of the batches
         await valkey.del("all_batches");
 
-        const batch = await Set.findOneAndUpdate({ _id: batchId }, {
+        const batch = await Batch.findOneAndUpdate({ _id: batchId }, {
             batch_name: name,
             limit
         }, { new: true });

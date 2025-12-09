@@ -1,123 +1,152 @@
-import bcrypt from 'bcryptjs'
-import { dbConnect } from '@/lib/dbConnect';
+import bcrypt from "bcryptjs";
+import mongoose from "mongoose";
+import { dbConnect } from "@/lib/dbConnect";
 import User from "@/models/user_models/user.model";
-import { createResponse, StatusCode } from '@/lib/createResponce';
-import { sendVerification } from '@/helpers/sendVerificationEmail';
+import UserData from "@/models/allUsers.model";
+import { createResponse, StatusCode } from "@/lib/createResponce";
+import { sendVerification } from "@/helpers/sendVerificationEmail";
 
 export async function POST(request: Request) {
-    await dbConnect()
+    await dbConnect();
+
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
     try {
+        const { username, email, password, avatar } = await request.json();
 
-        const { username, email, password, avatar } = await request.json()
+        if (!username || !email || !password) {
+            return createResponse(
+                { success: false, message: "Missing fields" },
+                StatusCode.BAD_REQUEST
+            );
+        }
 
-        console.log(username, email, avatar, password)
+        const validatedUsername = username.trim().toLowerCase();
+        const validatedEmail = email.trim().toLowerCase();
+        const validatedAvatar = avatar?.trim() || null;
+
 
         const existingUserVerifiedByUsername = await User.findOne({
-            username,
-            isVerified: true
-        })
-
-        if (!username || !email || !password ) {
-            return createResponse({
-                success: false,
-                message: "missing fields"
-            }, StatusCode.BAD_REQUEST)
-        }
+            username: validatedUsername,
+            isVerified: true,
+        });
 
         if (existingUserVerifiedByUsername) {
-            return createResponse({
-                success: false,
-                message: "Username is already taken"
-            }, StatusCode.BAD_REQUEST)
+            return createResponse(
+                { success: false, message: "Username already taken" },
+                StatusCode.BAD_REQUEST
+            );
         }
 
-        const existingUserByEmail = await User.findOne({ email })
+        const existingUser = await User.findOne({ email: validatedEmail });
 
-        console.log("Existing User:- ", existingUserByEmail)
+        const verifyCode = Math.floor(10000 + Math.random() * 90000).toString();
+        const hashedPassword = await bcrypt.hash(password, 10);
 
-        const verifyCode = Math.floor(10000 + Math.random() * 90000).toString()
+        let userDoc;
 
+        // IF USER EXISTS BUT NOT VERIFIED → UPDATE Data
 
-        if (existingUserByEmail) {
+        if (existingUser) {
+            if (existingUser.isVerified) {
+                return createResponse(
+                    { success: false, message: "User already verified" },
+                    StatusCode.FORBIDDEN
+                );
+            }
 
-            if (existingUserByEmail.isVerified) {
-                return createResponse({
-                    success: false,
-                    message: "User is verified"
-                }, StatusCode.FORBIDDEN)
+            userDoc = await User.findOneAndUpdate(
+                { email: validatedEmail },
+                {
+                    username: validatedUsername,
+                    password: hashedPassword,
+                    avatar: validatedAvatar,
+                    verifyCode,
+                    verifyExpiry: new Date(Date.now() + 3600000),
+                },
+                { new: true, session }
+            );
 
-            } else {
-                const hashedPassword = await bcrypt.hash(password, 10)
+            if (!userDoc) {
+                await session.abortTransaction();
+                return createResponse(
+                    { success: false, message: "User not updated" },
+                    StatusCode.CONFLICT
+                );
+            }
+        }
 
-                const updatedAdminDetails = await User.findOneAndUpdate(
-                    { email },
+        // CREATE NEW USER 
+
+        else {
+            userDoc = await User.create(
+                [
                     {
-                        username,
+                        username: validatedUsername,
+                        email: validatedEmail,
                         password: hashedPassword,
+                        avatar: validatedAvatar,
                         verifyCode,
-                        verifyExpiry: new Date(Date.now() + 3600000)
+                        verifyExpiry: new Date(Date.now() + 3600000),
+                        isVerified: false,
                     },
-                    { new: true }
-                )
+                ],
+                { session }
+            );
 
-                if(!updatedAdminDetails) return createResponse({
-                    success: false,
-                    message: "User not updated"
-                }, StatusCode.CONFLICT)
+            // ? Inquirey -----------------------------------------
+            console.log(userDoc)
 
-                const emailResponce = await sendVerification(email, username, verifyCode)
+            userDoc = userDoc[0];
 
-                if (!emailResponce.success) {
-                    return createResponse({
-                        success: false,
-                        message: emailResponce.message
-                    }, StatusCode.INTERNAL_ERROR)
-                }
-
-                return createResponse({
-                    success: true,
-                    message: "Verify Code sent! Please Verify"
-                }, StatusCode.OK)
-            }
-
-        } else {
-
-            const hashedPassword = await bcrypt.hash(password, 10)
-
-            const expiryDate = new Date()
-            expiryDate.setHours(expiryDate.getHours() + 1)
-
-            const newUser = await User.create({
-                username,
-                email,
-                password: hashedPassword,
-                verifyCode,
-                verifyExpiry: expiryDate,
-                isVerified: false,
-            })
-
-            console.log(newUser)
-
-            const emailResponce = await sendVerification(email, username, verifyCode)
-
-            if (!emailResponce.success) {
-                return createResponse({
-                    success: false,
-                    message: emailResponce.message
-                }, StatusCode.INTERNAL_ERROR)
-            }
-
-            return createResponse({
-                success: true,
-                message: "Verify Code sent! Please Verify"
-            }, StatusCode.OK)
         }
 
+        // UPDATE USERDATA 
+
+        const updatedUserData = await UserData.findOneAndUpdate(
+            { email: validatedEmail },
+            { username: validatedUsername },
+            { new: true, session }
+        );
+
+        if (!updatedUserData) {
+            await session.abortTransaction();
+            return createResponse(
+                { success: false, message: "UserData update failed" },
+                StatusCode.CONFLICT
+            );
+        }
+
+        // SEND VERIFICATION EMAIL
+
+        const emailResult = await sendVerification(validatedEmail, validatedUsername, verifyCode);
+
+        if (!emailResult.success) {
+            await session.abortTransaction();
+            return createResponse(
+                { success: false, message: emailResult.message },
+                StatusCode.INTERNAL_ERROR
+            );
+        }
+
+        // EVERYTHING SUCCESS → COMMIT
+        await session.commitTransaction();
+        session.endSession();
+
+        return createResponse(
+            { success: true, message: "Verification sent! Please verify." },
+            StatusCode.OK
+        );
     } catch (error) {
-        console.log("Error registering user", error)
-        return createResponse({
-            success: false,
-            message: "Error while registering user"
-        }, StatusCode.INTERNAL_ERROR)
+        console.log("Register Error:", error);
+
+        await session.abortTransaction();
+        session.endSession();
+
+        return createResponse(
+            { success: false, message: "Error while registering user" },
+            StatusCode.INTERNAL_ERROR
+        );
     }
 }

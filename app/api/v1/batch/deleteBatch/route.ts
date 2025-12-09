@@ -1,6 +1,6 @@
 import { createResponse, StatusCode } from "@/lib/createResponce";
 import { dbConnect } from "@/lib/dbConnect";
-import Set from "@/models/batch.model";
+import Batch from "@/models/batch.model";
 import { NextRequest } from "next/server";
 import { auth } from "@/auth"
 import valkey from "@/lib/valkey";
@@ -33,7 +33,7 @@ export async function DELETE(req: NextRequest) {
         await valkey.del("user_count");
         await valkey.del("all_batches");
 
-        const batch = await Set.findOneAndDelete({ _id: batchId });
+        const batch = await Batch.findOneAndDelete({ _id: batchId });
 
         if (!batch) return createResponse({
             success: false,
