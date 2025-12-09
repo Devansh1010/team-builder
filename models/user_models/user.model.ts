@@ -1,4 +1,4 @@
-import mongoose, { Schema, model, models } from 'mongoose';
+import { Schema, model, models } from 'mongoose';
 
 
 export enum UserRole {
@@ -9,7 +9,6 @@ export enum UserRole {
 interface IGroup {
     _id?: Schema.Types.ObjectId,
     groupId: Schema.Types.ObjectId,
-    userId: Schema.Types.ObjectId,
     userRole: UserRole,
     joinedAt: Date,
     leftAt: Date | null
@@ -19,7 +18,6 @@ interface IInvitation {
     _id?: Schema.Types.ObjectId,
     gropuId: Schema.Types.ObjectId,
     invitedBy: Schema.Types.ObjectId,
-
 }
 
 export interface IUser {
@@ -38,7 +36,7 @@ const userSchema = new Schema<IUser>({
         min: [2, 'Minimum 2 Character required in Username'],
         required: [true, 'Username Required']
     },
-    
+
     email: {
         type: String,
         required: [true, "Email Required"],
@@ -58,10 +56,8 @@ const userSchema = new Schema<IUser>({
     groups: [
         {
             groupId: { type: Schema.Types.ObjectId, ref: "Group", required: true },
-            userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
             userRole: { type: String, enum: Object.values(UserRole), required: true },
             joinedAt: { type: Date, default: Date.now },
-            leftAt: { type: Date, default: null },
         },
     ],
 
