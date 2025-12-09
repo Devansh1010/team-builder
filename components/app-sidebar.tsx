@@ -38,7 +38,7 @@ const items = [
     },
     {
         title: "Profile",
-        url: "#",
+        url: "/admin/profile",
         icon: Calendar,
     },
     {
