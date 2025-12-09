@@ -95,9 +95,6 @@ export async function POST(request: Request) {
                 { session }
             );
 
-            // ? Inquirey -----------------------------------------
-            console.log(userDoc)
-
             userDoc = userDoc[0];
 
         }
@@ -130,7 +127,7 @@ export async function POST(request: Request) {
             );
         }
 
-        // EVERYTHING SUCCESS → COMMIT
+        // EVERYTHING SUCCESS
         await session.commitTransaction();
         session.endSession();
 
