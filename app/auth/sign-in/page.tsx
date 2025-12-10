@@ -5,7 +5,6 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { signInSchema } from '@/lib/signInSchema';
-import { toast } from "sonner"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -31,13 +30,10 @@ const RegisterPage: React.FC = () => {
 
         console.log("SignIn responce auth", res)
 
-
         if (res?.url) {
             router.replace("/admin")
         }
-
         setIsSubmiting(false)
-
     }
 
 
