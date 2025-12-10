@@ -1,13 +1,6 @@
 import { Schema, model, models } from 'mongoose';
 import { UserRole } from './user.model';
 
-
-interface IInvited {
-    _id?: Schema.Types.ObjectId,
-    invitedUser: Schema.Types.ObjectId,
-    invitedBy: Schema.Types.ObjectId,
-}
-
 interface IMembers {
     _id?: Schema.Types.ObjectId,
     userId: Schema.Types.ObjectId,
@@ -31,7 +24,7 @@ export interface IGroup {
     _id?: Schema.Types.ObjectId,
     name: string,
     desc: string,
-    techStack: string,
+    techStack: string[],
     imageUrl: string,
     members: IMembers[]
     accessTo: IAccessTo
@@ -42,7 +35,7 @@ const groupSchema = new Schema<IGroup>({
     name: {
         type: String,
         min: [2, 'Minimum 2 Character required in Group Name'],
-        required: [true, 'Username Required']
+        required: [true, 'Username Required'],
     },
 
     desc: {
@@ -50,7 +43,7 @@ const groupSchema = new Schema<IGroup>({
     },
 
     techStack: {
-        type: String,
+        type: [String],
         required: [true, "techStack is Required"],
     },
 
@@ -71,7 +64,7 @@ const groupSchema = new Schema<IGroup>({
     accessTo: [
         {
             userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
-            userRole: {type: UserRole, required: true },
+            userRole: {type: String,  enum: Object.values(UserRole), required: true },
             joinedAt: {type: Date, required: true}
         },
     ],

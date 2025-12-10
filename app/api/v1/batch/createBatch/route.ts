@@ -89,6 +89,7 @@ export async function POST(req: NextRequest) {
 
     const session = await mongoose.startSession();
     session.startTransaction();
+    
     try {
       
       let newBatch = await Batch.create(
