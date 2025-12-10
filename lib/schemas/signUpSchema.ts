@@ -33,3 +33,9 @@ export const signUpSchema = z.object({
   fname: fnameValidation,
   lname: lnameValidation,
 })
+
+export const memberSignUpSchema = z.object({
+    username: userValidation,
+  email: emailValidation,
+  password: passwordValidation,
+})
