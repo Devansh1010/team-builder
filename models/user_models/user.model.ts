@@ -92,9 +92,16 @@ const userSchema = new Schema<IUser>({
     ],
 
     requestedGroups: [
-
-        { type: Schema.Types.ObjectId, ref: "Group", required: true },
-
+        {
+            groupId: {
+                type: Schema.Types.ObjectId,
+                ref: "Group", required: true
+            },
+            isAccept: {
+                type: Boolean,
+                default: false
+            }
+        },
     ]
 }, { timestamps: true })
 

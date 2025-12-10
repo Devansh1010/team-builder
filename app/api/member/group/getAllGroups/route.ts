@@ -1,6 +1,5 @@
 import { createResponse, StatusCode } from "@/lib/createResponce";
 import { dbConnect } from "@/lib/dbConnect";
-import { NextRequest } from "next/server";
 import Group from "@/models/user_models/group.model";
 import { VerifyUser } from "@/lib/verifyUser/userVerification";
 

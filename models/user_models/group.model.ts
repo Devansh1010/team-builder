@@ -22,6 +22,7 @@ interface IInvitedUser {
 interface IRequestedUser {
     userId: Schema.Types.ObjectId,
     msg: string
+    isAccept: boolean
 }
 
 export interface IGroup {
@@ -90,6 +91,10 @@ const groupSchema = new Schema<IGroup>({
             },
             msg:{
                 type: String
+            },
+            isAccept:{
+                type: Boolean,
+                default: false
             }
         }
     ]

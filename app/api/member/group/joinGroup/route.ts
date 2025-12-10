@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
             await Group.findByIdAndUpdate(
                 groupId,
                 {
-                    $push: {
+                    $addToSet: {
                         requestedUser: {
                             userId: data.id,
                             msg
@@ -69,12 +69,14 @@ export async function POST(req: NextRequest) {
 
             await User.findByIdAndUpdate(data.id,
                 {
-                    $push: {
-                        requestedGroups: groupId
+                    $addToSet: {
+                        requestedGroups: {
+                            groupId,
+                        }
                     }
 
                 },
-                { session }
+                { session, new: true }
             )
 
             // ! if want to store logs for requests also:-
