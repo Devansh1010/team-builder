@@ -4,7 +4,7 @@ import { NextRequest } from "next/server";
 import Group from "@/models/user_models/group.model";
 import { VerifyUser } from "@/lib/verifyUser/userVerification";
 
-export async function GET(req: NextRequest) {
+export async function GET() {
 
     try {
         const auth = await VerifyUser();
