@@ -36,14 +36,14 @@ const VerifyCodePage: React.FC = () => {
 
         try {
             console.log("Submitting verification", data);
-            const res = await axios.post('/api/auth/verify-code', data)
+            const res = await axios.post('/api/member/user/verify-code', data)
 
             if (res.data.success) {
                 toast.success("Code verified successfully!");
             } else {
                 toast.error(res.data.message)
             }
-            router.push("/admin");
+            router.push("/member/dashboard");
         } catch (error) {
             toast.error("Error in code verification");
         } finally {

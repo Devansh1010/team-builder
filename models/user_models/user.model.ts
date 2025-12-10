@@ -20,6 +20,10 @@ interface IInvitation {
     invitedBy: Schema.Types.ObjectId,
 }
 
+interface IRequestedGroups {
+    gropuId: Schema.Types.ObjectId,
+}
+
 export interface IUser {
     _id?: Schema.Types.ObjectId,
     username: string,
@@ -31,6 +35,7 @@ export interface IUser {
     verifyExpiry: Date,
     groups: IGroup[],
     invitation: IInvitation[]
+    requestedGroups: IRequestedGroups[]
 }
 
 const userSchema = new Schema<IUser>({
@@ -63,11 +68,11 @@ const userSchema = new Schema<IUser>({
         default: false
     },
 
-    verifyCode:{
+    verifyCode: {
         type: String
     },
 
-    verifyExpiry:{
+    verifyExpiry: {
         type: Date
     },
 
@@ -85,7 +90,13 @@ const userSchema = new Schema<IUser>({
             invitedBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
         },
     ],
-}, {timestamps: true})
+
+    requestedGroups: [
+
+        { type: Schema.Types.ObjectId, ref: "Group", required: true },
+
+    ]
+}, { timestamps: true })
 
 const User = models.User || model<IUser>('User', userSchema)
 

@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
 
         // Get specific query parameter
         const batchId = searchParams.get("batchId");
-        console.log("BatchId:- ", batchId)
+
 
         if (!batchId || batchId === "undefined" || batchId === "null") {
             return createResponse({

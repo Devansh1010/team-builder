@@ -6,18 +6,22 @@ interface IMembers {
     userId: Schema.Types.ObjectId,
     userRole: UserRole,
     joinedAt: Date,
-    leftAt: Date | null    
+    leftAt: Date | null
 }
 
 interface IAccessTo {
     _id?: Schema.Types.ObjectId,
     userId: Schema.Types.ObjectId,
     userRole: UserRole,
-    joinedAt: Date,  
+    joinedAt: Date,
 }
 
 interface IInvitedUser {
     userInvited: Schema.Types.ObjectId
+}
+interface IRequestedUser {
+    userId: Schema.Types.ObjectId,
+    msg: string
 }
 
 export interface IGroup {
@@ -28,7 +32,8 @@ export interface IGroup {
     imageUrl: string,
     members: IMembers[]
     accessTo: IAccessTo
-    invitedUsers: IInvitedUser[]
+    invitedUsers: IInvitedUser[],
+    requestedUser: IRequestedUser[]
 }
 
 const groupSchema = new Schema<IGroup>({
@@ -64,8 +69,8 @@ const groupSchema = new Schema<IGroup>({
     accessTo: [
         {
             userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
-            userRole: {type: String,  enum: Object.values(UserRole), required: true },
-            joinedAt: {type: Date, required: true}
+            userRole: { type: String, enum: Object.values(UserRole), required: true },
+            joinedAt: { type: Date, required: true }
         },
     ],
 
@@ -73,6 +78,19 @@ const groupSchema = new Schema<IGroup>({
         {
             type: Schema.Types.ObjectId,
             ref: 'User'
+        }
+    ],
+    
+    requestedUser: [
+        {
+            userId: {
+                type: Schema.Types.ObjectId,
+                ref: 'User',
+                reqired: true
+            },
+            msg:{
+                type: String
+            }
         }
     ]
 }, { timestamps: true })

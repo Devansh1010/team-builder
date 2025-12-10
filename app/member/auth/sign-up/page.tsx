@@ -32,7 +32,7 @@ const RegisterPage: React.FC = () => {
                 setUsernameMessage('')
 
                 try {
-                    const responce = await axios.get(`/api/auth/check-username-unique?username=${username}`)
+                    const responce = await axios.get(`/api/member/user/check-username-unique?username=${username}`)
 
                     setUsernameMessage(responce.data?.message)
 
@@ -54,7 +54,7 @@ const RegisterPage: React.FC = () => {
     const onSubmit = async (data: z.infer<typeof memberSignUpSchema>) => {
         setIsSubmiting(true);
         try {
-            const res = await axios.post("/api/auth/sign-up", data);
+            const res = await axios.post("/api/member/user/sign-up", data);
             //TODO: check if res has success message or not then show toast
             console.log(res)
             if (res.data.success) {

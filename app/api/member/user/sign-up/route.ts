@@ -26,6 +26,16 @@ export async function POST(request: Request) {
         const validatedEmail = email.trim().toLowerCase();
         const validatedAvatar = avatar?.trim() || null;
 
+        const isValidUser = await UserData.findOne({
+            email: validatedEmail
+        })
+
+        if (!isValidUser) {
+            return createResponse({
+                success: false,
+                message: 'You are not Part of the Team'
+            }, StatusCode.UNAUTHORIZED)
+        }
 
         const existingUserVerifiedByUsername = await User.findOne({
             username: validatedUsername,
@@ -68,6 +78,10 @@ export async function POST(request: Request) {
                 { new: true, session }
             );
 
+            await UserData.findOneAndUpdate({ email: validatedEmail },
+                { username: validatedUsername }
+            )
+
             if (!userDoc) {
                 await session.abortTransaction();
                 return createResponse(
@@ -97,23 +111,12 @@ export async function POST(request: Request) {
 
             userDoc = userDoc[0];
 
+            await UserData.findOneAndUpdate({ email: validatedEmail },
+                { username: validatedUsername }
+            )
+
         }
 
-        // UPDATE USERDATA 
-
-        const updatedUserData = await UserData.findOneAndUpdate(
-            { email: validatedEmail },
-            { username: validatedUsername },
-            { new: true, session }
-        );
-
-        if (!updatedUserData) {
-            await session.abortTransaction();
-            return createResponse(
-                { success: false, message: "UserData update failed" },
-                StatusCode.CONFLICT
-            );
-        }
 
         // SEND VERIFICATION EMAIL
 

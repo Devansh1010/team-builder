@@ -11,13 +11,13 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Loader2Icon } from "lucide-react"
 import Link from 'next/link';
-import { signIn } from 'next-auth/react';
 import axios from 'axios';
 
 
 const RegisterPage: React.FC = () => {
 
     const [isSubmiting, setIsSubmiting] = React.useState(false);
+    const [message, setMessage] = React.useState('');
 
 
     const router = useRouter();
@@ -26,15 +26,21 @@ const RegisterPage: React.FC = () => {
     const onSubmit = async (data: z.infer<typeof signInSchema>) => {
         setIsSubmiting(true)
 
-        const res = await axios.post('/api/member/user/sign-in', {username: data.identifier, password: data.password})
+        try {
+            const res = await axios.post('/api/member/user/sign-in', { username: data.identifier, password: data.password })
+            setMessage(res.data.message)
+            console.log("SignIn responce auth", res.data)
 
-        console.log("SignIn responce auth", res.data)
-
-        if (res?.data.success) {
-            router.replace("/member/dashboard")
+            if (res?.data.success) {
+                router.replace("/member/dashboard")
+            }
+            
+        } catch (error) {
+            console.log("Error Loging in")
+            toast.info(message)
+        } finally {
+            setIsSubmiting(false)
         }
-
-        setIsSubmiting(false)
 
     }
 
@@ -79,8 +85,8 @@ const RegisterPage: React.FC = () => {
                                     <FormLabel>Email address</FormLabel>
                                     <FormControl>
                                         <Input
-                                            type="email"
-                                            placeholder="Enter your email"
+                                            type="text"
+                                            placeholder="Enter your email or username"
                                             {...field}
                                         />
                                     </FormControl>

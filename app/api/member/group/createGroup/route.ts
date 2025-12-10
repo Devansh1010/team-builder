@@ -9,33 +9,28 @@ import Group from "@/models/user_models/group.model";
 import GroupLog from "@/models/user_models/group-log.model";
 import UserLog from "@/models/user_models/user-log.model";
 import jwt from 'jsonwebtoken'
+import { TokenPayload, VerifyUser } from "@/lib/verifyUser/userVerification";
 
-interface TokenPayload {
-    id: string;
-    username: string;
-}
 
 export async function POST(req: NextRequest) {
     try {
         await dbConnect()
 
-        const token = (await cookies()).get("authToken")?.value;
+        const auth = await VerifyUser();
 
+        if (!auth.success) {
+            return auth.response; 
+        }
 
-        if (!token) {
+        const data = auth.user;
+        if (!data) {
             return createResponse(
-                { success: false, message: "Login to teamsUp" },
+                { success: false, message: "Unauthorized" },
                 StatusCode.UNAUTHORIZED
             );
         }
 
-
-        const data = jwt.verify(token, process.env.JWT_SECRET!) as TokenPayload;
-
-
         const userGroups = await User.findById(data.id).select("groups");
-
-        console.log(userGroups)
 
         if (userGroups?.groups?.length > 0) {
             return createResponse(

@@ -5,7 +5,8 @@ import { cookies } from "next/headers";
 
 export async function proxy(req: NextRequest) {
   const session = await auth(); // ADMIN LOGIN
-  const token = (await cookies()).get("authToken")?.value; // MEMBER LOGIN
+  const token = (await cookies()).get("authToken")?.value;
+  console.log(token) // MEMBER LOGIN
 
   const { pathname } = req.nextUrl;
 

@@ -26,6 +26,8 @@ export async function POST(req: NextRequest) {
 
     await dbConnect()
 
+    console.log(validatedUser)
+
     const isValidUser = await UserData.findOne({
         $or: [
             { username: validatedUser },
@@ -36,7 +38,7 @@ export async function POST(req: NextRequest) {
     if (!isValidUser) {
         return createResponse({
             success: false,
-            message: 'Register Yourself First'
+            message: 'You are not Part of the Team'
         }, StatusCode.UNAUTHORIZED)
     }
 

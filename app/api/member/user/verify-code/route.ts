@@ -14,9 +14,8 @@ export async function POST(request: Request) {
     try {
         const { username, verifyCode } = await request.json()
 
-        
-
-        const user = await User.findOne({ username })
+        const normalizedUsername = username.toLowerCase()
+        const user = await User.findOne({ username: normalizedUsername })
 
         if (!user) {
             return createResponse({
@@ -27,8 +26,9 @@ export async function POST(request: Request) {
 
 
         const isCodeValid = user.verifyCode === verifyCode;
+        console.log(isCodeValid)
 
-        const isExpriyValid = new Date(user.verifyCodeExpires) > new Date();
+        const isExpriyValid = new Date(user.verifyExpiry) > new Date();
 
         console.log(isExpriyValid)
 
