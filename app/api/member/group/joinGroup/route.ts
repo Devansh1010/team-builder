@@ -12,7 +12,7 @@ import { VerifyUser } from "@/lib/verifyUser/userVerification";
 
 export async function POST(req: NextRequest) {
     try {
-        await dbConnect()
+
         const auth = await VerifyUser();
 
         if (!auth.success) {
@@ -28,6 +28,8 @@ export async function POST(req: NextRequest) {
             );
         }
 
+        await dbConnect()
+        
         const userGroups = await User.findById(data.id).select("groups");
 
         if (userGroups?.groups?.length > 0) {
