@@ -1,33 +1,28 @@
 import { Schema, model, models } from "mongoose";
 
-interface ILogEntry {
-    groupId: Schema.Types.ObjectId;
-    groupName: string;
-    isCreated?: boolean;
+interface ILogs {
+    userId: Schema.Types.ObjectId;
+    username: string;
     isRemoved?: boolean;
     isLeaved?: boolean;
     msg: string;
 }
 
-interface IUser_Log {
+interface IGroup_Log {
     _id?: Schema.Types.ObjectId;
-    userId: Schema.Types.ObjectId;
-    logs: ILogEntry[];
+    groupId: Schema.Types.ObjectId;
+    logs: ILogs[];
 }
 
-const logEntrySchema = new Schema<ILogEntry>({
-    groupId: {
+const logSubSchema = new Schema<ILogs>({
+    userId: {
         type: Schema.Types.ObjectId,
-        ref: "Group",
+        ref: "User",
         required: true,
     },
-    groupName: {
+    username: {
         type: String,
         required: true,
-    },
-    isCreated: {
-        type: Boolean,
-        default: false,
     },
     isRemoved: {
         type: Boolean,
@@ -43,19 +38,19 @@ const logEntrySchema = new Schema<ILogEntry>({
     },
 });
 
-const userLogSchema = new Schema<IUser_Log>(
+const groupLogSchema = new Schema<IGroup_Log>(
     {
-        userId: {
+        groupId: {
             type: Schema.Types.ObjectId,
-            ref: "User",
+            ref: "Group",
             required: true,
         },
-        logs: [logEntrySchema],
+        logs: [logSubSchema],
     },
     { timestamps: true }
 );
 
-const UserLog =
-    models.UserLog || model<IUser_Log>("UserLog", userLogSchema);
+const GroupLog =
+    models.GroupLog || model<IGroup_Log>("GroupLog", groupLogSchema);
 
-export default UserLog;
+export default GroupLog;
