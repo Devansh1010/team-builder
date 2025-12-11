@@ -10,64 +10,56 @@ import { VerifyUser } from "@/lib/verifyUser/userVerification";
 
 export async function POST(req: NextRequest) {
     try {
+        // 1. Authentication
         const auth = await VerifyUser();
+        if (!auth.success) return auth.response;
 
-        if (!auth.success) {
-            return auth.response;
-        }
-
-        const data = auth.user;
-        if (!data) {
+        const user = auth.user;
+        if (!user) {
             return createResponse(
                 { success: false, message: "Unauthorized" },
                 StatusCode.UNAUTHORIZED
             );
         }
-        //data validation
+
+        await dbConnect();
+
+        // 2. Extract request data
         const { searchParams } = new URL(req.url);
         const groupId = searchParams.get("groupId");
-        const isAccepted = searchParams.get('isAccept') === "true"
-        const requestedUser = searchParams.get('requestedUser')
+        const requestedUserId = searchParams.get("requestedUser");
+        const isAccept = searchParams.get("isAccept") === "true";
 
-        await dbConnect()
+        if (!groupId || !requestedUserId) {
+            return createResponse(
+                { success: false, message: "Invalid request" },
+                StatusCode.BAD_REQUEST
+            );
+        }
 
-        console.log(data.id)
+        // 3. Validate group request existence
         const groupRequest = await Group.findOne(
-            { _id: groupId, "requestedUser.userId": requestedUser },
+            { _id: groupId, "requestedUser.userId": requestedUserId },
             { "requestedUser.$": 1 }
-        )
+        );
 
         const userRequest = await User.findOne(
-            {
-                _id: requestedUser,
-                "requestedGroups.groupId": groupId
-            },
+            { _id: requestedUserId, "requestedGroups.groupId": groupId },
             { "requestedGroups.$": 1 }
         );
 
-
         if (!groupRequest || !userRequest) {
             return createResponse(
-                { success: false, message: "Request Not exist" },
+                { success: false, message: "Request does not exist" },
                 StatusCode.BAD_REQUEST
             );
         }
 
-        const userGroups = await User.findById(data.id).select('groups')
+        // 4. Check if this user is leader of the group
+        const currentUserData = await User.findById(user.id).select("groups");
 
-
-        if (!userGroups?.groups || userGroups.groups.length === 0) {
-            return createResponse(
-                { success: false, message: "You are not part of any group" },
-                StatusCode.BAD_REQUEST
-            );
-        }
-
-
-        //check if group is full or not
-
-        const isLeader = userGroups.groups.some(
-            (g: { groupId: any, userRole: string }) => g.groupId == groupId && g.userRole === UserRole.LEADER
+        const isLeader = currentUserData.groups.some(
+            (g: {groupId: any, userRole: string}) => g.groupId == groupId && g.userRole === UserRole.LEADER
         );
 
         if (!isLeader) {
@@ -77,144 +69,138 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        //is leader - true
+        // 5. Optional group full logic (your placeholder)
+        // const group = await Group.findById(groupId).select("members limit");
+        // if (group.members.length >= group.limit) {
+        //     return createResponse(
+        //         { success: false, message: "Group is full" },
+        //         StatusCode.BAD_REQUEST
+        //     );
+        // }
+
+        // 6. Start transaction
         const session = await mongoose.startSession();
         session.startTransaction();
 
         try {
-            if (isAccepted) {
+            if (isAccept) {
+                // ------------------------------
+                // ACCEPT REQUEST
+                // ------------------------------
 
-                const newUpdatedGroup = await Group.findOneAndUpdate(
-                    { _id: groupId, "requestedUser.userId": requestedUser },
+                const updatedGroup = await Group.findOneAndUpdate(
+                    { _id: groupId, "requestedUser.userId": requestedUserId },
                     {
                         $push: {
                             accessTo: {
-                                userId: requestedUser,
+                                userId: requestedUserId,
                                 userRole: UserRole.MEMBER,
-                                joinedAt: new Date()
-                            }
+                                joinedAt: new Date(),
+                            },
                         },
-
-                        $pull: {
-                            requestedUser: { userId: requestedUser }
-                        }
-                    }, {
-                    session, new: true
-                }
+                        $pull: { requestedUser: { userId: requestedUserId } },
+                    },
+                    { session, new: true }
                 );
 
-                const user = await User.findOneAndUpdate(
-                    { _id: requestedUser, "requestedGroups.groupId": groupId },
-
+                const updatedUser = await User.findOneAndUpdate(
+                    { _id: requestedUserId, "requestedGroups.groupId": groupId },
                     {
                         $push: {
                             groups: {
-                                groupId: groupId,
+                                groupId,
                                 userRole: UserRole.MEMBER,
-                                joinedAt: new Date()
-                            }
+                                joinedAt: new Date(),
+                            },
                         },
-
-                        $pull: {
-                            requestedGroups: { groupId: groupId }
-                        }
-                    }, {
-                    session,
-                    new: true
-                }
-                )
-
-                await UserLog.findOneAndUpdate(
-                    { userId: requestedUser },
-                    {
-                        $push: {
-                            logs: {
-                                groupId: groupId,
-                                groupName: newUpdatedGroup.name,
-                                msg: "Joined the Group"
-                            }
-                        }
-                    }, {
-                    session,
-                    new: true
-                }
-                )
-
-                await GroupLog.findOneAndUpdate(
-                    { groupId: groupId },
-                    {
-                        $push: {
-                            logs: {
-                                userId: requestedUser,
-                                username: user.username,
-                                msg: "Joined the Group"
-                            }
-                        }
-                    }, {
-                    session,
-                    new: true
-                }
-                )
-
-                await session.commitTransaction();
-                await session.endSession();
-
-                return createResponse({
-                    success: true,
-                    message: "Requested Accepted",
-
-                }, StatusCode.CREATED);
-            } else {
-
-                await Group.findOneAndUpdate(
-                    { _id: groupId, "requestedUser.userId": requestedUser },
-                    {
-
-                        $pull: {
-                            requestedUser: { userId: requestedUser }
-                        }
-                    }, {
-                    session, new: true
-                }
+                        $pull: { requestedGroups: { groupId } },
+                    },
+                    { session, new: true }
                 );
 
-                await User.findOneAndUpdate(
-                    { _id: requestedUser, "requestedGroups.userId": groupId },
-
+                // User log
+                await UserLog.findOneAndUpdate(
+                    { userId: requestedUserId },
                     {
+                        $push: {
+                            logs: {
+                                groupId,
+                                groupName: updatedGroup.name,
+                                msg: "Joined the group",
+                            },
+                        },
+                    },
+                    { session }
+                );
 
-                        $pull: {
-                            requestedGroups: { groupId: groupId }
-                        }
-                    }, {
-                    session,
-                    new: true
-                }
-                )
+                // Group log
+                await GroupLog.findOneAndUpdate(
+                    { groupId },
+                    {
+                        $push: {
+                            logs: {
+                                userId: requestedUserId,
+                                username: updatedUser.username,
+                                msg: "Joined the group",
+                            },
+                        },
+                    },
+                    { session }
+                );
 
                 await session.commitTransaction();
-                await session.endSession();
+                session.endSession();
 
-                return createResponse({
-                    success: true,
-                    message: "Request Rejected"
-                }, StatusCode.CREATED);
+                return createResponse(
+                    { success: true, message: "Request Accepted" },
+                    StatusCode.CREATED
+                );
             }
-        } catch (error) {
-            await session.abortTransaction()
-            await session.endSession()
-            return createResponse({
-                success: false,
-                message: "Error in Request Handaling",
-                data: error
-            }, StatusCode.UNPROCESSABLE);
-        }
 
-    } catch (error) {
-        return createResponse({
-            success: false,
-            message: "Error Occured",
-            data: error
-        }, StatusCode.INTERNAL_ERROR);
+            // ------------------------------
+            // REJECT REQUEST
+            // ------------------------------
+
+            await Group.findOneAndUpdate(
+                { _id: groupId, "requestedUser.userId": requestedUserId },
+                { $pull: { requestedUser: { userId: requestedUserId } } },
+                { session }
+            );
+
+            await User.findOneAndUpdate(
+                { _id: requestedUserId, "requestedGroups.groupId": groupId },
+                { $pull: { requestedGroups: { groupId } } },
+                { session }
+            );
+
+            await session.commitTransaction();
+            session.endSession();
+
+            return createResponse(
+                { success: true, message: "Request Rejected" },
+                StatusCode.CREATED
+            );
+        } catch (error) {
+            await session.abortTransaction();
+            session.endSession();
+
+            return createResponse(
+                {
+                    success: false,
+                    message: "Error handling request",
+                    data: error,
+                },
+                StatusCode.UNPROCESSABLE
+            );
+        }
+    } catch (err) {
+        return createResponse(
+            {
+                success: false,
+                message: "Internal server error",
+                data: err,
+            },
+            StatusCode.INTERNAL_ERROR
+        );
     }
 }

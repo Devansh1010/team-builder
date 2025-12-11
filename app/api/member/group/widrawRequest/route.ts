@@ -6,7 +6,6 @@ import User from "@/models/user_models/user.model";
 import Group from "@/models/user_models/group.model";
 import { VerifyUser } from "@/lib/verifyUser/userVerification";
 
-
 export async function POST(req: NextRequest) {
     try {
 
@@ -29,17 +28,15 @@ export async function POST(req: NextRequest) {
 
         const userGroups = await User.findById(data.id).select("groups");
 
-        if (userGroups?.groups?.length > 0) {
+        if (!userGroups?.groups || userGroups.groups.length === 0) {
             return createResponse(
-                { success: false, message: "You are already part of a group" },
+                { success: false, message: "You are not part of this group" },
                 StatusCode.BAD_REQUEST
             );
         }
 
         const { searchParams } = new URL(req.url);
         const groupId = searchParams.get("groupId");
-
-        const { msg } = await req.json()
 
         if (!groupId) {
             return createResponse(
@@ -55,21 +52,20 @@ export async function POST(req: NextRequest) {
             await Group.findByIdAndUpdate(
                 groupId,
                 {
-                    $addToSet: {
+                    $pull: {
                         requestedUser: {
                             userId: data.id,
-                            msg
                         }
                     }
                 },
-                { session }
+                { session, new: true }
             );
 
 
 
             await User.findByIdAndUpdate(data.id,
                 {
-                    $addToSet: {
+                    $pull: {
                         requestedGroups: {
                             groupId,
                         }
@@ -116,7 +112,7 @@ export async function POST(req: NextRequest) {
 
             return createResponse({
                 success: true,
-                message: "Group Join request sent",
+                message: "Widraw Join request",
             }, StatusCode.CREATED);
 
         } catch (error) {
@@ -124,14 +120,14 @@ export async function POST(req: NextRequest) {
             await session.endSession()
             return createResponse({
                 success: false,
-                message: "Error Sending Group Request",
+                message: "Error widrawing Group Request",
                 data: error
             }, StatusCode.UNPROCESSABLE);
         }
     } catch (error) {
         return createResponse({
             success: false,
-            message: "Error Sending Group Request",
+            message: "Internal Error Occured While Widrawing Request",
             data: error
         }, StatusCode.INTERNAL_ERROR);
     }
