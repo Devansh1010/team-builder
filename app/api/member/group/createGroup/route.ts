@@ -1,25 +1,21 @@
 import { createResponse, StatusCode } from "@/lib/createResponce";
 import { dbConnect } from "@/lib/dbConnect";
-import { cookies } from "next/headers";
 import { NextRequest } from "next/server";
 import mongoose from "mongoose";
 import User, { UserRole } from "@/models/user_models/user.model";
-
 import Group from "@/models/user_models/group.model";
 import GroupLog from "@/models/user_models/group-log.model";
 import UserLog from "@/models/user_models/user-log.model";
-import jwt from 'jsonwebtoken'
-import { TokenPayload, VerifyUser } from "@/lib/verifyUser/userVerification";
+import { VerifyUser } from "@/lib/verifyUser/userVerification";
 
 
 export async function POST(req: NextRequest) {
     try {
-        await dbConnect()
 
         const auth = await VerifyUser();
 
         if (!auth.success) {
-            return auth.response; 
+            return auth.response;
         }
 
         const data = auth.user;
@@ -30,6 +26,8 @@ export async function POST(req: NextRequest) {
             );
         }
 
+        await dbConnect()
+        
         const userGroups = await User.findById(data.id).select("groups");
 
         if (userGroups?.groups?.length > 0) {
