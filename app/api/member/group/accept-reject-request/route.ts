@@ -37,7 +37,21 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // 3. Validate group request existence
+        // 3. Check if this user is leader of the group
+        const currentUserData = await User.findById(user.id).select("groups");
+
+        const isLeader = currentUserData.groups.some(
+            (g: { groupId: any, userRole: string }) => g.groupId == groupId && g.userRole === UserRole.LEADER
+        );
+
+        if (!isLeader) {
+            return createResponse(
+                { success: false, message: "Unauthorized" },
+                StatusCode.UNAUTHORIZED
+            );
+        }
+
+        // 4. Validate group request existence
         const groupRequest = await Group.findOne(
             { _id: groupId, "requestedUser.userId": requestedUserId },
             { "requestedUser.$": 1 }
@@ -55,19 +69,7 @@ export async function POST(req: NextRequest) {
             );
         }
 
-        // 4. Check if this user is leader of the group
-        const currentUserData = await User.findById(user.id).select("groups");
 
-        const isLeader = currentUserData.groups.some(
-            (g: { groupId: any, userRole: string }) => g.groupId == groupId && g.userRole === UserRole.LEADER
-        );
-
-        if (!isLeader) {
-            return createResponse(
-                { success: false, message: "Unauthorized" },
-                StatusCode.UNAUTHORIZED
-            );
-        }
 
         // 5. Optional group full logic (your placeholder)
         // const group = await Group.findById(groupId).select("members limit");
@@ -94,6 +96,11 @@ export async function POST(req: NextRequest) {
                                 userRole: UserRole.MEMBER,
                                 joinedAt: new Date(),
                             },
+                            members: {
+                                userId: requestedUserId,
+                                userRole: UserRole.MEMBER,
+                                joinedAt: new Date(),
+                            }
                         },
                         $pull: { requestedUser: { userId: requestedUserId } },
                     },

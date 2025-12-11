@@ -26,14 +26,6 @@ export async function POST(req: NextRequest) {
 
         await dbConnect()
 
-        const userGroups = await User.findById(data.id).select("groups");
-
-        if (!userGroups?.groups || userGroups.groups.length === 0) {
-            return createResponse(
-                { success: false, message: "You are not part of this group" },
-                StatusCode.BAD_REQUEST
-            );
-        }
 
         const { searchParams } = new URL(req.url);
         const groupId = searchParams.get("groupId");
@@ -45,6 +37,22 @@ export async function POST(req: NextRequest) {
             );
         }
 
+        const groupRequest = await Group.findOne(
+            { _id: groupId, "requestedUser.userId": data.id },
+            { "requestedUser.$": 1 }
+        );
+
+        const userRequest = await User.findOne(
+            { _id: data.id, "requestedGroups.groupId": groupId },
+            { "requestedGroups.$": 1 }
+        );
+
+        if (!groupRequest || !userRequest) {
+            return createResponse(
+                { success: false, message: "No Requesst Found" },
+                StatusCode.BAD_REQUEST
+            );
+        }
         const session = await mongoose.startSession();
         session.startTransaction();
         try {

@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
         }
 
         await dbConnect()
-        
+
         const userGroups = await User.findById(data.id).select("groups");
 
         if (userGroups?.groups?.length > 0) {
@@ -78,6 +78,13 @@ export async function POST(req: NextRequest) {
                     techStack,
                     imageUrl,
                     accessTo: [
+                        {
+                            userId: data.id,
+                            userRole: UserRole.LEADER,
+                            joinedAt: new Date(),
+                        }
+                    ],
+                    members: [
                         {
                             userId: data.id,
                             userRole: UserRole.LEADER,

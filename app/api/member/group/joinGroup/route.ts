@@ -48,6 +48,23 @@ export async function POST(req: NextRequest) {
             );
         }
 
+        const groupRequest = await Group.findOne(
+            { _id: groupId, "requestedUser.userId": data.id },
+            { "requestedUser.$": 1 }
+        );
+
+        const userRequest = await User.findOne(
+            { _id: data.id, "requestedGroups.groupId": groupId },
+            { "requestedGroups.$": 1 }
+        );
+
+        if (groupRequest || userRequest) {
+            return createResponse(
+                { success: false, message: "Already Requested" },
+                StatusCode.BAD_REQUEST
+            );
+        }
+
         const session = await mongoose.startSession();
         session.startTransaction();
         try {
