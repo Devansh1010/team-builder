@@ -84,10 +84,7 @@ export async function POST(req: NextRequest) {
 
         try {
             if (isAccept) {
-                // ------------------------------
                 // ACCEPT REQUEST
-                // ------------------------------
-
                 const updatedGroup = await Group.findOneAndUpdate(
                     { _id: groupId, "requestedUser.userId": requestedUserId },
                     {
@@ -157,9 +154,7 @@ export async function POST(req: NextRequest) {
                 );
             }
 
-            // ------------------------------
             // REJECT REQUEST
-            // ------------------------------
 
             await Group.findOneAndUpdate(
                 { _id: groupId, "requestedUser.userId": requestedUserId },
@@ -180,6 +175,7 @@ export async function POST(req: NextRequest) {
                 { success: true, message: "Request Rejected" },
                 StatusCode.CREATED
             );
+            
         } catch (error) {
             await session.abortTransaction();
             session.endSession();
