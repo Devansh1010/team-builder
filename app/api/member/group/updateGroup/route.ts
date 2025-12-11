@@ -29,20 +29,25 @@ export async function POST(req: NextRequest) {
         const { searchParams } = new URL(req.url);
         const groupId = searchParams.get("groupId");
 
+        if (!groupId || !mongoose.isValidObjectId(groupId)) {
+            return createResponse(
+                { success: false, message: "Invalid groupId" },
+                StatusCode.BAD_REQUEST
+            );
+        }
+
         await dbConnect()
 
         const groupUsers = await Group.findById(groupId).select('accessTo')
 
-        console.log('Access To:-', groupUsers)
-
-        if (!groupUsers || groupUsers.length === 0) {
+        if (!groupUsers?.accessTo || groupUsers.accessTo.length === 0) {
             return createResponse(
                 { success: false, message: "You are not part of group" },
                 StatusCode.BAD_REQUEST
             );
         }
 
-        const isLeader = groupUsers.some(
+        const isLeader = groupUsers.accessTo.some(
             (g: { userId: any, userRole: string }) => g.userId == data.id && g.userRole === UserRole.LEADER
         );
 
@@ -57,6 +62,7 @@ export async function POST(req: NextRequest) {
         const body = await req.json()
         const errors: string[] = [];
         const name = body.name?.trim().toLowerCase();
+
         if (!name || name.length < 2) {
             errors.push("Name must be at least 2 characters.");
         }
@@ -66,15 +72,14 @@ export async function POST(req: NextRequest) {
 
         const imageUrl = body.imageUrl
 
-
         if (errors.length > 0) {
             return createResponse({
-
                 success: false,
                 message: "Validation failed",
                 data: errors
             }, StatusCode.BAD_REQUEST);
         }
+
         const session = await mongoose.startSession();
         session.startTransaction();
 
