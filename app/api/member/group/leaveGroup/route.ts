@@ -10,7 +10,7 @@ import GroupLog from "@/models/user_models/group-log.model";
 
 export async function POST(req: NextRequest) {
     try {
- 
+
         // 1. Authenticate User
 
         const auth = await VerifyUser();
@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
         }
 
         // 4. Check if user is leader of this specific group
- 
+
         const isLeader = userDoc.groups.some(
             (g: { groupId: any; userRole: string }) =>
                 g.groupId == groupId && g.userRole === UserRole.LEADER
@@ -125,7 +125,12 @@ export async function POST(req: NextRequest) {
                         },
                     },
                 },
-                { session }
+                {
+                    session,
+                    new: true,
+                    upsert: true, // creates doc if not found
+                    setDefaultsOnInsert: true, // ensures schema defaults apply
+                }
             );
 
             // Group log entry

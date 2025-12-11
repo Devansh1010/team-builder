@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
         const currentUserData = await User.findById(user.id).select("groups");
 
         const isLeader = currentUserData.groups.some(
-            (g: {groupId: any, userRole: string}) => g.groupId == groupId && g.userRole === UserRole.LEADER
+            (g: { groupId: any, userRole: string }) => g.groupId == groupId && g.userRole === UserRole.LEADER
         );
 
         if (!isLeader) {
@@ -127,7 +127,12 @@ export async function POST(req: NextRequest) {
                             },
                         },
                     },
-                    { session }
+                    {
+                        session,
+                        new: true,
+                        upsert: true, // creates doc if not found
+                        setDefaultsOnInsert: true, // ensures schema defaults apply
+                    }
                 );
 
                 // Group log
@@ -175,7 +180,7 @@ export async function POST(req: NextRequest) {
                 { success: true, message: "Request Rejected" },
                 StatusCode.CREATED
             );
-            
+
         } catch (error) {
             await session.abortTransaction();
             session.endSession();
