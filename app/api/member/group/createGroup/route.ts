@@ -53,7 +53,6 @@ export async function POST(req: NextRequest) {
 
         const imageUrl = body.imageUrl
 
-        console.log(name, desc, techStack, imageUrl)
 
         if (errors.length > 0) {
             return createResponse({

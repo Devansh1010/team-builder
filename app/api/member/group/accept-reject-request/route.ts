@@ -55,7 +55,6 @@ export async function POST(req: NextRequest) {
 
         const userGroups = await User.findById(data.id).select('groups')
 
-        console.log(userGroups)
 
         if (!userGroups?.groups || userGroups.groups.length === 0) {
             return createResponse(
@@ -68,7 +67,7 @@ export async function POST(req: NextRequest) {
         //check if group is full or not
 
         const isLeader = userGroups.groups.some(
-            (g: any) => g.groupId == groupId && g.userRole === UserRole.LEADER
+            (g: { groupId: any, userRole: string }) => g.groupId == groupId && g.userRole === UserRole.LEADER
         );
 
         if (!isLeader) {
@@ -104,7 +103,7 @@ export async function POST(req: NextRequest) {
                 }
                 );
 
-                await User.findOneAndUpdate(
+                const user = await User.findOneAndUpdate(
                     { _id: requestedUser, "requestedGroups.groupId": groupId },
 
                     {
@@ -147,7 +146,7 @@ export async function POST(req: NextRequest) {
                         $push: {
                             logs: {
                                 userId: requestedUser,
-                                username: data.username,
+                                username: user.username,
                                 msg: "Joined the Group"
                             }
                         }
