@@ -27,7 +27,7 @@ export async function GET() {
 
         if (allGroups.length === 0) {
             return createResponse(
-                { success: false, message: "No Groups Created" },
+                { success: false, message: "No Groups Found" },
                 StatusCode.NOT_FOUND
             );
         }
@@ -43,7 +43,7 @@ export async function GET() {
     } catch (error) {
         return createResponse({
             success: false,
-            message: "Error While Fetching Groups",
+            message: "Error While Finding Groups",
             data: error
         }, StatusCode.INTERNAL_ERROR);
     }

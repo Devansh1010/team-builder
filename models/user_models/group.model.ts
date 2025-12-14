@@ -1,7 +1,7 @@
 import { Schema, model, models } from 'mongoose';
 import { UserRole } from './user.model';
 
-interface IMembers {
+export interface IMembers {
     _id?: Schema.Types.ObjectId,
     userId: Schema.Types.ObjectId,
     userRole: UserRole,
@@ -9,17 +9,18 @@ interface IMembers {
     leftAt: Date | null
 }
 
-interface IAccessTo {
+export interface IAccessTo {
     _id?: Schema.Types.ObjectId,
     userId: Schema.Types.ObjectId,
     userRole: UserRole,
     joinedAt: Date,
 }
 
-interface IInvitedUser {
+export interface IInvitedUser {
     userInvited: Schema.Types.ObjectId
 }
-interface IRequestedUser {
+
+export interface IRequestedUser {
     userId: Schema.Types.ObjectId,
     msg: string
     isAccept: boolean
@@ -32,9 +33,10 @@ export interface IGroup {
     techStack: string[],
     imageUrl: string,
     members: IMembers[]
-    accessTo: IAccessTo
+    accessTo: IAccessTo[]
     invitedUsers: IInvitedUser[],
     requestedUser: IRequestedUser[]
+    createdAt? : Date | undefined
 }
 
 const groupSchema = new Schema<IGroup>({

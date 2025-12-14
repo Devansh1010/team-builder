@@ -9,7 +9,6 @@ import { VerifyUser } from "@/lib/verifyUser/userVerification";
 
 export async function POST(req: NextRequest) {
     try {
-
         const auth = await VerifyUser();
 
         if (!auth.success) {
@@ -58,12 +57,17 @@ export async function POST(req: NextRequest) {
             { "requestedGroups.$": 1 }
         );
 
+        console.log(groupRequest)
+        console.log(userRequest)
+
         if (groupRequest || userRequest) {
             return createResponse(
                 { success: false, message: "Already Requested" },
                 StatusCode.BAD_REQUEST
             );
         }
+
+        console.log("Get Here.....")
 
         const session = await mongoose.startSession();
         session.startTransaction();
@@ -146,6 +150,8 @@ export async function POST(req: NextRequest) {
             }, StatusCode.UNPROCESSABLE);
         }
     } catch (error) {
+        console.log("Error: ", error)
+
         return createResponse({
             success: false,
             message: "Error Sending Group Request",

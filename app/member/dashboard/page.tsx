@@ -1,8 +1,11 @@
-import React from 'react'
+import GroupPage from '@/components/member/group/groupDetails'
 
 const page = () => {
+
   return (
-    <div>page</div>
+    <div className='max-w-screen'>
+      <GroupPage />
+    </div>
   )
 }
 

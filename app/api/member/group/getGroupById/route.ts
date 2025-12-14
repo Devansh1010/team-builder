@@ -17,7 +17,6 @@ export async function GET(req: NextRequest) {
 
     const data = auth.user;
 
-
     if (!data) {
       return createResponse(
         { success: false, message: "Unauthorized" },
@@ -27,7 +26,7 @@ export async function GET(req: NextRequest) {
 
     const { searchParams } = new URL(req.url);
     const groupId = searchParams.get("groupId");
-    
+
     await dbConnect()
 
     if (groupId) {
@@ -42,10 +41,15 @@ export async function GET(req: NextRequest) {
 
       // ! chekc if user already applied to this group if yes also send isApplied: true in data 
 
-       return createResponse(
-          { success: false, message: "Found the Group data",data: group },
-          StatusCode.CONFLICT
-        );
+      return createResponse(
+        {
+          success: true,
+          message: "Found the Group data",
+          data: [group], 
+        },
+        StatusCode.OK
+      );
+
 
     } else {
       const user = await User.findById(data.id).select('groups')
@@ -69,7 +73,7 @@ export async function GET(req: NextRequest) {
 
       return createResponse(
         {
-          success: false,
+          success: true,
           message: "Found Group For User",
           data: allGroups
         },
