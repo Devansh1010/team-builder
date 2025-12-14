@@ -1,21 +1,28 @@
 import { createResponse, StatusCode } from "@/lib/createResponce";
 import { dbConnect } from "@/lib/dbConnect";
 import { NextRequest } from "next/server";
-import { auth } from "@/auth"
 import valkey from '@/lib/valkey'
-import Admin from "@/models/admin.model";
+import { VerifyUser } from "@/lib/verifyUser/userVerification";
+import User, { UserRole } from "@/models/user_models/user.model";
 
 export async function GET(req: NextRequest) {
     try {
 
-        const session = await auth()
+        const auth = await VerifyUser();
 
-        if (!session || !session?.user) return createResponse({
-            success: false,
-            message: "User Not Allowed"
-        }, StatusCode.UNAUTHORIZED)
+        if (!auth.success) {
+            return auth.response;
+        }
 
-        const userId = session.user?.id
+        const data = auth.user;
+        if (!data) {
+            return createResponse(
+                { success: false, message: "Unauthorized" },
+                StatusCode.UNAUTHORIZED
+            );
+        }
+
+        const userId = data.id
 
         await dbConnect()
 
@@ -30,12 +37,12 @@ export async function GET(req: NextRequest) {
             }, StatusCode.OK);
         }
 
-        const userInfo = await Admin.findOne({ _id: userId }).select("-password");
+        const userInfo = await User.findOne({ _id: userId }).select("-password");
 
 
         if (!userInfo) return createResponse({
             success: false,
-            message: "No User Found",
+            message: "No User found",
             data: {}
         }, StatusCode.NOT_FOUND)
 

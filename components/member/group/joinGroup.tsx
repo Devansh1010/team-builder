@@ -1,12 +1,41 @@
 'use client'
 
-import { useEffect } from 'react'
-import Link from 'next/link'
+import { useEffect, useState } from 'react'
+import axios from 'axios'
+import { toast } from 'sonner'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { Loader2 } from 'lucide-react'
+
 import { useGroupStore } from '@/store/group.store'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { joinGroupSchema, JoinGroupSchema } from '@/lib/schemas/group/SendRequest'
+
+import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
-import { toast } from 'sonner'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+
+import {
+    Dialog,
+    DialogTrigger,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+    DialogFooter,
+    DialogClose,
+} from '@/components/ui/dialog'
+
+import {
+    Form,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormControl,
+    FormMessage,
+} from '@/components/ui/form'
+import { useUserStore } from '@/store/user.store'
 
 /* ---------------- Skeleton ---------------- */
 
@@ -33,30 +62,95 @@ const GroupListSkeleton = () => (
 /* ---------------- Page ---------------- */
 
 const JoinGroup = () => {
-    const {
-        groups,
-        isGettingGroups,
-        message,
-        setGroups,
-    } = useGroupStore()
+    const [isSubmitting, setIsSubmitting] = useState(false)
+    const [appliedGroups, setAppliedGroups] = useState<Set<string>>(new Set())
+    const [openGroupId, setOpenGroupId] = useState<string | null>(null)
 
+    const { groups, isGettingGroups, message, setGroups } = useGroupStore()
+    const { user, setActiveUser } = useUserStore()
+
+    /* ---------------- Effects ---------------- */
     useEffect(() => {
         setGroups()
-    }, [setGroups])
+        setActiveUser()
+    }, [setGroups, setActiveUser])
+
+    useEffect(() => {
+        if (!user?._id) return
+
+        const userId = user._id.toString()
+        const applied = new Set<string>()
+
+        groups.forEach(group => {
+            if (!group._id) return
+
+            const hasRequested = group.requestedUser?.some(
+                req => req.userId.toString() === userId
+            )
+
+            const hasGroupMember = group.accessTo?.some(
+                req => req.userId.toString() === userId
+            )
+
+            if (hasRequested || hasGroupMember) {
+                applied.add(group._id.toString())
+            }
+        })
+
+        setAppliedGroups(applied)
+
+    }, [user, groups])
 
     useEffect(() => {
         if (message) toast.info(message)
     }, [message])
+
+    /* ---------------- Form ---------------- */
+
+    const form = useForm<JoinGroupSchema>({
+        resolver: zodResolver(joinGroupSchema),
+        defaultValues: {
+            message: '',
+        },
+    })
+
+    /* ---------------- API ---------------- */
+
+    const sendRequest = async (groupId: string, data: JoinGroupSchema) => {
+        try {
+            setIsSubmitting(true)
+
+            const res = await axios.post(
+                `/api/member/group/joinGroup?groupId=${groupId}`,
+                data
+            )
+
+            if (res.data.success) {
+                toast.success(res.data.message)
+                setOpenGroupId(null)
+                setAppliedGroups(prev => new Set(prev).add(groupId))
+                form.reset()
+            } else {
+                toast.error(res.data.message)
+            }
+        } catch {
+            toast.error('Error occurred while sending request')
+        } finally {
+            setIsSubmitting(false)
+        }
+    }
+
+    /* ---------------- Render ---------------- */
 
     return (
         <div className="mx-auto my-8 max-w-7xl px-6 space-y-8">
 
             {/* Header */}
             <div className="space-y-1">
-                <h1 className="text-2xl font-semibold tracking-tight text-gray-900 dark:text-gray-100">
+                <h1 className="text-2xl font-semibold tracking-tight">
                     Explore Groups
                 </h1>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-sm text-muted-foreground">
                     Discover teams and communities you can join
                 </p>
             </div>
@@ -66,74 +160,137 @@ const JoinGroup = () => {
 
             {/* Empty State */}
             {!isGettingGroups && groups.length === 0 && (
-                <div className="rounded-xl border border-dashed border-gray-300 dark:border-gray-700 p-10 text-center">
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                <div className="rounded-xl border border-dashed p-10 text-center">
+                    <p className="text-sm text-muted-foreground">
                         No groups available right now.
                     </p>
                 </div>
             )}
 
-            {/* Groups List */}
+            {/* Groups */}
             {!isGettingGroups && groups.length > 0 && (
-                <div className="mx-auto max-w-5xl rounded-2xl border border-gray-200 dark:border-gray-800 divide-y divide-gray-200 dark:divide-gray-800 overflow-hidden">
+                <div className="mx-auto max-w-5xl rounded-2xl border divide-y overflow-hidden">
 
-                    {groups.map((group) => (
-                        <Link
-                            key={group._id?.toString()}
-                            href={`/member/dashboard/join/${group._id}`}
-                            className="group block transition-colors hover:bg-gray-50 dark:hover:bg-gray-900"
-                        >
-                            <div className="flex items-start justify-between gap-6 px-6 py-5">
+                    {groups.map(group => {
+                        if (!group._id) return null
+                        const groupId = group._id.toString()
+                        const isApplied = appliedGroups.has(groupId)
 
-                                {/* Left Content */}
-                                <div className="min-w-0 space-y-2">
+                        return (
+                            <div
+                                key={groupId}
+                                className="flex items-start justify-between gap-6 px-6 py-5"
+                            >
 
-                                    {/* Title + Meta */}
+                                {/* Left */}
+                                <div className="space-y-2 min-w-0">
                                     <div className="flex items-center gap-3 flex-wrap">
-                                        <h3 className="font-semibold text-sm tracking-wide text-gray-900 dark:text-gray-100 truncate">
+                                        <h3 className="font-semibold text-sm truncate">
                                             {group.name.toUpperCase()}
                                         </h3>
-
-                                        <span className="text-xs text-gray-500 dark:text-gray-400">
+                                        <span className="text-xs text-muted-foreground">
                                             • {group.accessTo?.length ?? 0} members
                                         </span>
                                     </div>
 
-                                    {/* Description */}
-                                    <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 max-w-3xl">
+                                    <p className="text-sm text-muted-foreground line-clamp-2 max-w-3xl">
                                         {group.desc}
                                     </p>
 
-                                    {/* Tech Stack */}
                                     <div className="flex flex-wrap gap-2 pt-1">
-                                        {group.techStack.map((tech: string) => (
+                                        {group.techStack.map(tech => (
                                             <Badge
                                                 key={tech}
                                                 variant="secondary"
-                                                className="rounded-full text-xs px-3 py-0.5 bg-gray-100 text-gray-700
-                               dark:bg-gray-800 dark:text-gray-300"
+                                                className="rounded-full text-xs px-3"
                                             >
                                                 {tech}
                                             </Badge>
                                         ))}
                                     </div>
-
                                 </div>
 
-                                {/* Arrow */}
-                                <div className="mt-1 text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-100 transition">
-                                    →
-                                </div>
+                                {/* Right */}
+                                <Dialog
+                                    open={openGroupId === groupId}
+                                    onOpenChange={open =>
+                                        setOpenGroupId(open ? groupId : null)
+                                    }
+                                >
+                                    {isApplied ? (
+                                        <Button size="sm" variant="secondary" disabled>
+                                            Applied
+                                        </Button>
+                                    ) : (
+                                        <DialogTrigger asChild>
+                                            <Button size="sm">Send Join Request</Button>
+                                        </DialogTrigger>
+                                    )}
 
+                                    <DialogContent className="sm:max-w-[425px]">
+                                        <DialogHeader>
+                                            <DialogTitle>Join Group</DialogTitle>
+                                            <DialogDescription>
+                                                Send a short message explaining why you want to join.
+                                            </DialogDescription>
+                                        </DialogHeader>
+
+                                        <Form {...form}>
+                                            <form
+                                                onSubmit={form.handleSubmit(data =>
+                                                    sendRequest(groupId, data)
+                                                )}
+                                                className="space-y-6"
+                                            >
+                                                <FormField
+                                                    control={form.control}
+                                                    name="message"
+                                                    render={({ field }) => (
+                                                        <FormItem>
+                                                            <FormLabel>Message</FormLabel>
+                                                            <FormControl>
+                                                                <Input
+                                                                    placeholder="I would love to contribute to backend or schema design"
+                                                                    {...field}
+                                                                />
+                                                            </FormControl>
+                                                            <FormMessage />
+                                                        </FormItem>
+                                                    )}
+                                                />
+
+                                                <DialogFooter>
+                                                    <DialogClose asChild>
+                                                        <Button
+                                                            type="button"
+                                                            variant="outline"
+                                                            disabled={isSubmitting}
+                                                        >
+                                                            Cancel
+                                                        </Button>
+                                                    </DialogClose>
+
+                                                    <Button type="submit" disabled={isSubmitting}>
+                                                        {isSubmitting ? (
+                                                            <span className="flex items-center gap-2">
+                                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                                                Sending...
+                                                            </span>
+                                                        ) : (
+                                                            'Submit'
+                                                        )}
+                                                    </Button>
+                                                </DialogFooter>
+                                            </form>
+                                        </Form>
+                                    </DialogContent>
+                                </Dialog>
                             </div>
-                        </Link>
-                    ))}
-
+                        )
+                    })}
                 </div>
             )}
-
         </div>
-
     )
 }
 
