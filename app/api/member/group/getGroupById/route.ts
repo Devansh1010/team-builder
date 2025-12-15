@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
     await dbConnect()
 
     if (groupId) {
-      const group = await Group.findById(groupId).select('name desc techStack imageUrl accessTo')
+      const group = await Group.findById(groupId)
 
       if (!group) {
         return createResponse(

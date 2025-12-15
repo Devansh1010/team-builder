@@ -35,7 +35,9 @@ import {
     FormControl,
     FormMessage,
 } from '@/components/ui/form'
+
 import { useUserStore } from '@/store/user.store'
+
 
 /* ---------------- Skeleton ---------------- */
 
@@ -63,43 +65,69 @@ const GroupListSkeleton = () => (
 
 const JoinGroup = () => {
     const [isSubmitting, setIsSubmitting] = useState(false)
+    const [isWithdrawing, setIsWithdrawing] = useState(false)
+
     const [appliedGroups, setAppliedGroups] = useState<Set<string>>(new Set())
+    const [groupLeader, setGroupLeader] = useState<Set<string>>(new Set())
+    const [groupMember, setGroupMember] = useState<Set<string>>(new Set())
+
     const [openGroupId, setOpenGroupId] = useState<string | null>(null)
+    const [withdrawGroupId, setWithdrawGroupId] = useState<string | null>(null)
 
     const { groups, isGettingGroups, message, setGroups } = useGroupStore()
     const { user, setActiveUser } = useUserStore()
 
     /* ---------------- Effects ---------------- */
+
     useEffect(() => {
         setGroups()
         setActiveUser()
     }, [setGroups, setActiveUser])
 
     useEffect(() => {
-        if (!user?._id) return
+        if (!user?._id || groups.length === 0) return
 
         const userId = user._id.toString()
-        const applied = new Set<string>()
+        console.log(userId)
 
-        groups.forEach(group => {
-            if (!group._id) return
+        const { applied, leader, member } = groups.reduce(
+            (acc, group) => {
+                if (!group._id) return acc
 
-            const hasRequested = group.requestedUser?.some(
-                req => req.userId.toString() === userId
-            )
+                console.log(group)
+                const hasRequested = group.requestedUser?.some(
 
-            const hasGroupMember = group.accessTo?.some(
-                req => req.userId.toString() === userId
-            )
+                    req => req.userId.toString() === userId
+                )
 
-            if (hasRequested || hasGroupMember) {
-                applied.add(group._id.toString())
+                console.log(hasRequested)
+
+                const isLeader = group.accessTo?.some(
+                    req => req.userId.toString() === userId && req.userRole === 'leader'
+                )
+
+                const hasMember = group.accessTo?.some(
+                    req => req.userId.toString() === userId
+                )
+
+                if (hasRequested) acc.applied.add(group._id.toString())
+                if (isLeader) acc.leader.add(group._id.toString())
+                else if (hasMember) acc.member.add(group._id.toString())
+
+                return acc
+            },
+            {
+                applied: new Set<string>(),
+                leader: new Set<string>(),
+                member: new Set<string>(),
             }
-        })
+        )
 
         setAppliedGroups(applied)
-
+        setGroupLeader(leader)
+        setGroupMember(member)
     }, [user, groups])
+
 
     useEffect(() => {
         if (message) toast.info(message)
@@ -114,7 +142,7 @@ const JoinGroup = () => {
         },
     })
 
-    /* ---------------- API ---------------- */
+    /* ---------------- APIs ---------------- */
 
     const sendRequest = async (groupId: string, data: JoinGroupSchema) => {
         try {
@@ -127,18 +155,48 @@ const JoinGroup = () => {
 
             if (res.data.success) {
                 toast.success(res.data.message)
-                setOpenGroupId(null)
                 setAppliedGroups(prev => new Set(prev).add(groupId))
+                setOpenGroupId(null)
                 form.reset()
             } else {
                 toast.error(res.data.message)
             }
         } catch {
-            toast.error('Error occurred while sending request')
+            toast.error('Error while sending request')
         } finally {
             setIsSubmitting(false)
         }
     }
+
+    const withdrawRequest = async (groupId: string) => {
+        try {
+            setIsWithdrawing(true)
+
+            const res = await axios.post(
+                `/api/member/group/widrawRequest?groupId=${groupId}`
+            )
+
+            if (res.data.success) {
+                toast.success(res.data.message)
+
+                setAppliedGroups(prev => {
+                    const updated = new Set(prev)
+                    updated.delete(groupId)
+                    return updated
+                })
+
+                setWithdrawGroupId(null)
+            } else {
+                toast.error(res.data.message)
+            }
+        } catch {
+            toast.error('Error while withdrawing request')
+        } finally {
+            setIsWithdrawing(false)
+        }
+    }
+
+
 
     /* ---------------- Render ---------------- */
 
@@ -146,10 +204,8 @@ const JoinGroup = () => {
         <div className="mx-auto my-8 max-w-7xl px-6 space-y-8">
 
             {/* Header */}
-            <div className="space-y-1">
-                <h1 className="text-2xl font-semibold tracking-tight">
-                    Explore Groups
-                </h1>
+            <div>
+                <h1 className="text-2xl font-semibold">Explore Groups</h1>
                 <p className="text-sm text-muted-foreground">
                     Discover teams and communities you can join
                 </p>
@@ -158,34 +214,33 @@ const JoinGroup = () => {
             {/* Loading */}
             {isGettingGroups && <GroupListSkeleton />}
 
-            {/* Empty State */}
+            {/* Empty */}
             {!isGettingGroups && groups.length === 0 && (
-                <div className="rounded-xl border border-dashed p-10 text-center">
-                    <p className="text-sm text-muted-foreground">
-                        No groups available right now.
-                    </p>
+                <div className="border border-dashed rounded-xl p-10 text-center">
+                    No groups available
                 </div>
             )}
 
             {/* Groups */}
             {!isGettingGroups && groups.length > 0 && (
-                <div className="mx-auto max-w-5xl rounded-2xl border divide-y overflow-hidden">
-
+                <div className="max-w-5xl mx-auto rounded-2xl border divide-y">
                     {groups.map(group => {
                         if (!group._id) return null
                         const groupId = group._id.toString()
+
                         const isApplied = appliedGroups.has(groupId)
+                        const isLeader = groupLeader.has(groupId)
+                        const isMember = groupMember.has(groupId)
 
                         return (
                             <div
                                 key={groupId}
-                                className="flex items-start justify-between gap-6 px-6 py-5"
+                                className="flex justify-between gap-6 px-6 py-5"
                             >
-
                                 {/* Left */}
-                                <div className="space-y-2 min-w-0">
-                                    <div className="flex items-center gap-3 flex-wrap">
-                                        <h3 className="font-semibold text-sm truncate">
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-2">
+                                        <h3 className="font-semibold text-sm">
                                             {group.name.toUpperCase()}
                                         </h3>
                                         <span className="text-xs text-muted-foreground">
@@ -193,17 +248,13 @@ const JoinGroup = () => {
                                         </span>
                                     </div>
 
-                                    <p className="text-sm text-muted-foreground line-clamp-2 max-w-3xl">
+                                    <p className="text-sm text-muted-foreground line-clamp-2">
                                         {group.desc}
                                     </p>
 
-                                    <div className="flex flex-wrap gap-2 pt-1">
+                                    <div className="flex gap-2 flex-wrap">
                                         {group.techStack.map(tech => (
-                                            <Badge
-                                                key={tech}
-                                                variant="secondary"
-                                                className="rounded-full text-xs px-3"
-                                            >
+                                            <Badge key={tech} variant="secondary">
                                                 {tech}
                                             </Badge>
                                         ))}
@@ -211,85 +262,116 @@ const JoinGroup = () => {
                                 </div>
 
                                 {/* Right */}
-                                <Dialog
-                                    open={openGroupId === groupId}
-                                    onOpenChange={open =>
-                                        setOpenGroupId(open ? groupId : null)
-                                    }
-                                >
-                                    {isApplied ? (
-                                        <Button size="sm" variant="secondary" disabled>
-                                            Applied
-                                        </Button>
-                                    ) : (
-                                        <DialogTrigger asChild>
-                                            <Button size="sm">Send Join Request</Button>
-                                        </DialogTrigger>
-                                    )}
+                                <div className="flex items-center space-x-2">
+                                    {isLeader && <Badge>Leader</Badge>}
 
-                                    <DialogContent className="sm:max-w-[425px]">
-                                        <DialogHeader>
-                                            <DialogTitle>Join Group</DialogTitle>
-                                            <DialogDescription>
-                                                Send a short message explaining why you want to join.
-                                            </DialogDescription>
-                                        </DialogHeader>
+                                    {isMember && !isLeader && <Badge>Member</Badge>}
 
-                                        <Form {...form}>
-                                            <form
-                                                onSubmit={form.handleSubmit(data =>
-                                                    sendRequest(groupId, data)
-                                                )}
-                                                className="space-y-6"
-                                            >
-                                                <FormField
-                                                    control={form.control}
-                                                    name="message"
-                                                    render={({ field }) => (
-                                                        <FormItem>
-                                                            <FormLabel>Message</FormLabel>
-                                                            <FormControl>
-                                                                <Input
-                                                                    placeholder="I would love to contribute to backend or schema design"
-                                                                    {...field}
-                                                                />
-                                                            </FormControl>
-                                                            <FormMessage />
-                                                        </FormItem>
-                                                    )}
-                                                />
+                                    {isApplied && !isLeader && (
+                                        <Dialog
+                                            open={withdrawGroupId === groupId}
+                                            onOpenChange={open => !open && setWithdrawGroupId(null)}
+                                        >
+                                            <DialogTrigger asChild>
+                                                <Button
+                                                    size="sm"
+                                                    variant="destructive"
+                                                    onClick={() => setWithdrawGroupId(groupId)}
+                                                >
+                                                    Withdraw Request
+                                                </Button>
+                                            </DialogTrigger>
+
+                                            <DialogContent>
+                                                <DialogHeader>
+                                                    <DialogTitle>Withdraw Request</DialogTitle>
+                                                    <DialogDescription>
+                                                        Are you sure you want to withdraw your request from this group?
+                                                    </DialogDescription>
+                                                </DialogHeader>
 
                                                 <DialogFooter>
                                                     <DialogClose asChild>
-                                                        <Button
-                                                            type="button"
-                                                            variant="outline"
-                                                            disabled={isSubmitting}
-                                                        >
-                                                            Cancel
-                                                        </Button>
+                                                        <Button variant="outline">Cancel</Button>
                                                     </DialogClose>
 
-                                                    <Button type="submit" disabled={isSubmitting}>
-                                                        {isSubmitting ? (
-                                                            <span className="flex items-center gap-2">
-                                                                <Loader2 className="h-4 w-4 animate-spin" />
-                                                                Sending...
-                                                            </span>
+                                                    <Button
+                                                        variant="destructive"
+                                                        onClick={() => withdrawRequest(groupId)}
+                                                        disabled={isWithdrawing}
+                                                    >
+                                                        {isWithdrawing ? (
+                                                            <Loader2 className="h-4 w-4 animate-spin" />
                                                         ) : (
-                                                            'Submit'
+                                                            'Confirm Withdraw'
                                                         )}
                                                     </Button>
                                                 </DialogFooter>
-                                            </form>
-                                        </Form>
-                                    </DialogContent>
-                                </Dialog>
+                                            </DialogContent>
+                                        </Dialog>
+
+                                    )}
+
+                                    {!isApplied && !isLeader && !isMember && (
+                                        <Dialog
+                                            open={openGroupId === groupId}
+                                            onOpenChange={open => setOpenGroupId(open ? groupId : null)}
+                                        >
+                                            <DialogTrigger asChild>
+                                                <Button size="sm">Send Join Request</Button>
+                                            </DialogTrigger>
+
+                                            <DialogContent>
+                                                <DialogHeader>
+                                                    <DialogTitle>Join Group</DialogTitle>
+                                                    <DialogDescription>Tell why you want to join</DialogDescription>
+                                                </DialogHeader>
+
+                                                <Form {...form}>
+                                                    <form
+                                                        onSubmit={form.handleSubmit(data => sendRequest(groupId, data))}
+                                                        className="space-y-4"
+                                                    >
+                                                        <FormField
+                                                            control={form.control}
+                                                            name="message"
+                                                            render={({ field }) => (
+                                                                <FormItem>
+                                                                    <FormLabel>Message</FormLabel>
+                                                                    <FormControl>
+                                                                        <Input {...field} />
+                                                                    </FormControl>
+                                                                    <FormMessage />
+                                                                </FormItem>
+                                                            )}
+                                                        />
+
+                                                        <DialogFooter>
+                                                            <DialogClose asChild>
+                                                                <Button variant="outline">Cancel</Button>
+                                                            </DialogClose>
+
+                                                            <Button disabled={isSubmitting}>
+                                                                {isSubmitting ? (
+                                                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                                                ) : (
+                                                                    'Submit'
+                                                                )}
+                                                            </Button>
+                                                        </DialogFooter>
+                                                    </form>
+                                                </Form>
+                                            </DialogContent>
+                                        </Dialog>
+                                    )}
+                                </div>
+
                             </div>
                         )
                     })}
                 </div>
             )}
+
         </div>
     )
 }

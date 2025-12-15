@@ -23,7 +23,7 @@ export async function GET() {
 
         await dbConnect()
 
-        const allGroups = await Group.find({}) .select('_id name desc techStack accessTo');
+        const allGroups = await Group.find({})
 
         if (allGroups.length === 0) {
             return createResponse(
