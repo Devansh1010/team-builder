@@ -22,7 +22,7 @@ export interface IInvitedUser {
 
 export interface IRequestedUser {
     userId: Schema.Types.ObjectId,
-    username: string,
+    username: string,  
     msg: string
     isAccept: boolean
 }

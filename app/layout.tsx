@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 
 // Sonar
 import { Toaster } from "@/components/ui/sonner"
+import { ReactQueryProvider } from "@/tanstack/providers";
 
 
 const geistSans = Geist({
@@ -34,7 +35,8 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-         <ThemeProvider
+        <ReactQueryProvider>
+          <ThemeProvider
             attribute="class"
             defaultTheme="system"
             enableSystem
@@ -44,6 +46,7 @@ export default function RootLayout({
               {children}
             </main>
           </ThemeProvider>
+        </ReactQueryProvider>
         <Toaster />
       </body>
     </html>

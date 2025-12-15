@@ -1,10 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useGroupStore } from '@/store/group.store'
+import { useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Skeleton } from '@/components/ui/skeleton'
 import { toast } from 'sonner'
 import { Calendar } from "@/components/ui/calendar"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -26,73 +24,65 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
-import axios from 'axios'
+
 import { Loader2 } from 'lucide-react'
 
+import {IRequestedUser} from '@/models/user_models/group.model'
+
+//tanstack Quert
+
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { fetchActiveGroups, handleGroupRequest } from '@/lib/api/group.api'
+
+
 const GroupPage = () => {
-  const {
-    activeGroup,
-    isGettingActiveGroup,
-    message,
-    setActiveGroup,
-  } = useGroupStore()
-
-  useEffect(() => {
-    setActiveGroup()
-  }, [setActiveGroup])
-
-  useEffect(() => {
-    if (message) toast.info(message)
-  }, [message])
-
   const [date, setDate] = useState<Date | undefined>(new Date())
-  const [isRequestSending, setIsRequestSending] = useState<boolean>(false)
-  const [activeAction, setActiveAction] = useState<"accept" | "reject" | null>(null)
 
-  const onAccept = (groupId: string , requestedUserId: string) => {
-    if (!groupId || !requestedUserId || isRequestSending) return
-    setActiveAction("accept")
-    setIsRequestSending(true)
-    handleRequest(groupId.toString(), requestedUserId.toString(), true)
-  }
+  const {
+    data: activeGroup = [],
+    isLoading,
+  } = useQuery({
+    queryKey: ['activeGroups'],
+    queryFn: fetchActiveGroups,
+  })
 
-  const onReject = (groupId: string, requestedUserId: string) => {
-    if (!groupId || !requestedUserId || isRequestSending) return
-    setActiveAction("reject")
-    setIsRequestSending(true)
-    handleRequest(groupId.toString(), requestedUserId.toString(), false)
-  }
+  console.log()
+  const queryClient = useQueryClient()
 
+  const requestMutation = useMutation({
+    mutationFn: handleGroupRequest,
+    onSuccess: () => {
+      toast.success('Request updated')
+      queryClient.invalidateQueries({ queryKey: ['activeGroups'] })
+    },
+    onError: () => {
+      toast.error('Failed to update request')
+    },
+  })
 
-  const handleRequest = async (groupId: string, requestedUserId: string, isAccept: boolean) => {
-    try {
-      setIsRequestSending(true)
-
-      const res = await axios.post(
-        `/api/member/group/accept-reject-request?groupId=${groupId}&requestedUser=${requestedUserId}&isAccept=${isAccept}`
-      )
-    } catch {
-      toast.error('Error while withdrawing request')
-    } finally {
-      setIsRequestSending(false)
-      setActiveAction(null)
-    }
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    )
   }
 
   if (!activeGroup.length) {
     return (
-      <div className="p-6 text-center text-muted-foreground">
-        You are not part of any group yet.
+      <div className="flex min-h-screen items-center justify-center px-4">
+        <p className="text-center text-muted-foreground text-lg">
+          You are not part of any group yet.
+        </p>
       </div>
     )
   }
 
   const group = activeGroup[0]
-  const role = group.accessTo?.[0]?.userRole
+  // const role = group.accessTo?.[0]?.userRole
 
   return (
     <div className="mx-auto my-6 max-w-340 flex gap-6">
-
       {/* Main Card */}
       <div className="flex-1 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 px-8 py-6 shadow-sm">
 
@@ -106,7 +96,7 @@ const GroupPage = () => {
 
           {/* Members */}
           <div className="flex -space-x-2">
-            {group.accessTo?.map((user) => (
+            {group.accessTo?.map((user : IRequestedUser) => (
               <Avatar
                 key={user.userId.toString()}
                 className="h-8 w-8 border border-white dark:border-gray-900"
@@ -138,7 +128,7 @@ const GroupPage = () => {
 
           {/* Tech Stack */}
           <div className="flex flex-wrap gap-2">
-            {group.techStack?.map((tech) => (
+            {group.techStack?.map((tech: string) => (
               <Badge
                 key={tech}
                 variant="secondary"
@@ -170,7 +160,7 @@ const GroupPage = () => {
               Join Requests
             </h3>
 
-            {group.requestedUser.map((user) => {
+            {group.requestedUser.map((user: IRequestedUser) => {
               if (!user?.userId || !group._id) return null
               return (
                 <div
@@ -217,36 +207,32 @@ const GroupPage = () => {
                           </Button>
                         </DialogClose>
 
-
+                        {/* Accept */}
                         <Button
-                          className="flex-1"
-                          disabled={isRequestSending}
-                          onClick={() => onAccept(group._id!.toString(), user.userId.toString())}
+                          disabled={requestMutation.isPending}
+                          onClick={() =>
+                            requestMutation.mutate({
+                              groupId: group._id.toString(),
+                              requestedUserId: user.userId.toString(),
+                              isAccept: true,
+                            })
+                          }
                         >
-                          {isRequestSending && activeAction === "accept" ? (
-                            <span className="flex items-center gap-2">
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                              Accepting...
-                            </span>
-                          ) : (
-                            "Accept"
-                          )}
+                          {requestMutation.isPending ? 'Accepting...' : 'Accept'}
                         </Button>
 
+                        {/* Reject */}
                         <Button
-                          variant="destructive"
-                          className="flex-1"
-                          disabled={isRequestSending}
-                          onClick={() => onReject(group._id!.toString(), user.userId.toString())}
+                          disabled={requestMutation.isPending}
+                          onClick={() =>
+                            requestMutation.mutate({
+                              groupId: group._id.toString(),
+                              requestedUserId: user.userId.toString(),
+                              isAccept: false,
+                            })
+                          }
                         >
-                          {isRequestSending && activeAction === "reject" ? (
-                            <span className="flex items-center gap-2">
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                              Rejecting...
-                            </span>
-                          ) : (
-                            "Reject"
-                          )}
+                          {requestMutation.isPending ? 'Accepting...' : 'Accept'}
                         </Button>
 
                       </DialogFooter>
@@ -261,8 +247,7 @@ const GroupPage = () => {
 
       </div>
 
-    </div>
-
+    </div >
   )
 }
 
