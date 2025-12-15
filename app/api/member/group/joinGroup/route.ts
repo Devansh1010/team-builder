@@ -79,6 +79,7 @@ export async function POST(req: NextRequest) {
                     $addToSet: {
                         requestedUser: {
                             userId: data.id,
+                            username: data.username,
                             msg
                         }
                     }

@@ -22,6 +22,7 @@ export interface IInvitedUser {
 
 export interface IRequestedUser {
     userId: Schema.Types.ObjectId,
+    username: string,
     msg: string
     isAccept: boolean
 }
@@ -90,6 +91,11 @@ const groupSchema = new Schema<IGroup>({
                 type: Schema.Types.ObjectId,
                 ref: 'User',
                 reqired: true
+            },
+
+            username:{
+                type: String,
+                required: true
             },
             msg:{
                 type: String

@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button"
 export function UserNavigationMenu() {
     return (
         <div className="w-full border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950">
-            <div className="mx-auto max-w-7xl px-6 py-3 flex items-center justify-between">
+            <div className="mx-auto max-w-340 px-2 py-3 flex items-center justify-between">
 
                 {/* Brand */}
                 <div className="text-xl font-semibold tracking-tight text-gray-900 dark:text-gray-100">
