@@ -27,7 +27,7 @@ import {
 
 import { Loader2 } from 'lucide-react'
 
-import {IRequestedUser} from '@/models/user_models/group.model'
+import { IRequestedUser } from '@/models/user_models/group.model'
 
 //tanstack Quert
 
@@ -46,7 +46,6 @@ const GroupPage = () => {
     queryFn: fetchActiveGroups,
   })
 
-  console.log()
   const queryClient = useQueryClient()
 
   const requestMutation = useMutation({
@@ -96,7 +95,7 @@ const GroupPage = () => {
 
           {/* Members */}
           <div className="flex -space-x-2">
-            {group.accessTo?.map((user : IRequestedUser) => (
+            {group.accessTo?.map((user: IRequestedUser) => (
               <Avatar
                 key={user.userId.toString()}
                 className="h-8 w-8 border border-white dark:border-gray-900"
@@ -223,6 +222,7 @@ const GroupPage = () => {
 
                         {/* Reject */}
                         <Button
+                          variant={'destructive'}
                           disabled={requestMutation.isPending}
                           onClick={() =>
                             requestMutation.mutate({
@@ -232,7 +232,7 @@ const GroupPage = () => {
                             })
                           }
                         >
-                          {requestMutation.isPending ? 'Accepting...' : 'Accept'}
+                          {requestMutation.isPending ? 'Rejecting' : 'Reject'}
                         </Button>
 
                       </DialogFooter>

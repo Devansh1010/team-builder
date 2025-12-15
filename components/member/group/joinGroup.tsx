@@ -1,19 +1,15 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import axios from 'axios'
 import { toast } from 'sonner'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Loader2 } from 'lucide-react'
 
-import { useGroupStore } from '@/store/group.store'
 import { joinGroupSchema, JoinGroupSchema } from '@/lib/schemas/group/SendRequest'
 
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 
 import {
@@ -35,105 +31,63 @@ import {
     FormControl,
     FormMessage,
 } from '@/components/ui/form'
+//tanstack Quert
 
-import { useUserStore } from '@/store/user.store'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { fetchAllGroups, sendJoinRequest, widrawRequest } from '@/lib/api/group.api'
+import { IAccessTo, IGroup, IRequestedUser } from '@/models/user_models/group.model'
+import { fetchCurrentActiveUser } from '@/lib/api/user.api'
+import { useActiveUser } from '@/hooks/useActiveUser'
 
-
-/* ---------------- Skeleton ---------------- */
-
-const GroupListSkeleton = () => (
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-        {[...Array(6)].map((_, i) => (
-            <Card key={i}>
-                <CardHeader>
-                    <Skeleton className="h-5 w-2/3" />
-                </CardHeader>
-                <CardContent className="space-y-3">
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-5/6" />
-                    <div className="flex gap-2">
-                        <Skeleton className="h-5 w-16" />
-                        <Skeleton className="h-5 w-16" />
-                    </div>
-                </CardContent>
-            </Card>
-        ))}
-    </div>
-)
 
 /* ---------------- Page ---------------- */
 
 const JoinGroup = () => {
-    const [isSubmitting, setIsSubmitting] = useState(false)
-    const [isWithdrawing, setIsWithdrawing] = useState(false)
-
-    const [appliedGroups, setAppliedGroups] = useState<Set<string>>(new Set())
-    const [groupLeader, setGroupLeader] = useState<Set<string>>(new Set())
-    const [groupMember, setGroupMember] = useState<Set<string>>(new Set())
 
     const [openGroupId, setOpenGroupId] = useState<string | null>(null)
     const [withdrawGroupId, setWithdrawGroupId] = useState<string | null>(null)
 
-    const { groups, isGettingGroups, message, setGroups } = useGroupStore()
-    const { user, setActiveUser } = useUserStore()
-
     /* ---------------- Effects ---------------- */
 
-    useEffect(() => {
-        setGroups()
-        setActiveUser()
-    }, [setGroups, setActiveUser])
+    const {
+        data: groups = [],
+        isLoading: isGettingGroups,
+        isError,
+    } = useQuery({
+        queryKey: ['groups'],
+        queryFn: fetchAllGroups,
+    })
 
-    useEffect(() => {
-        if (!user?._id || groups.length === 0) return
+    const { data: user } = useActiveUser()
 
-        const userId = user._id.toString()
-        console.log(userId)
+    const queryClient = useQueryClient()
 
-        const { applied, leader, member } = groups.reduce(
-            (acc, group) => {
-                if (!group._id) return acc
+    const sendRequestMutation = useMutation({
+        mutationFn: sendJoinRequest,
+        onSuccess: () => {
+            toast.success('Request sent successfully')
+            queryClient.invalidateQueries({ queryKey: ['groups'] })
+            setOpenGroupId(null)
+            form.reset()
+        },
+        onError: () => {
+            toast.error('Error while sending request')
+        },
+    })
 
-                console.log(group)
-                const hasRequested = group.requestedUser?.some(
+    const withdrawMutation = useMutation({
+        mutationFn: widrawRequest,
+        onSuccess: () => {
+            toast.success('Request withdrawn')
+            queryClient.invalidateQueries({ queryKey: ['groups'] })
+            setWithdrawGroupId(null)
+        },
 
-                    req => req.userId.toString() === userId
-                )
+        onError: () => {
+            toast.error('Error while sending request')
+        },
+    })
 
-                console.log(hasRequested)
-
-                const isLeader = group.accessTo?.some(
-                    req => req.userId.toString() === userId && req.userRole === 'leader'
-                )
-
-                const hasMember = group.accessTo?.some(
-                    req => req.userId.toString() === userId
-                )
-
-                if (hasRequested) acc.applied.add(group._id.toString())
-                if (isLeader) acc.leader.add(group._id.toString())
-                else if (hasMember) acc.member.add(group._id.toString())
-
-                return acc
-            },
-            {
-                applied: new Set<string>(),
-                leader: new Set<string>(),
-                member: new Set<string>(),
-            }
-        )
-
-        setAppliedGroups(applied)
-        setGroupLeader(leader)
-        setGroupMember(member)
-    }, [user, groups])
-
-
-    useEffect(() => {
-        if (message) toast.info(message)
-    }, [message])
-
-    /* ---------------- Form ---------------- */
 
     const form = useForm<JoinGroupSchema>({
         resolver: zodResolver(joinGroupSchema),
@@ -142,66 +96,24 @@ const JoinGroup = () => {
         },
     })
 
-    /* ---------------- APIs ---------------- */
-
-    const sendRequest = async (groupId: string, data: JoinGroupSchema) => {
-        try {
-            setIsSubmitting(true)
-
-            const res = await axios.post(
-                `/api/member/group/joinGroup?groupId=${groupId}`,
-                data
-            )
-
-            if (res.data.success) {
-                toast.success(res.data.message)
-                setAppliedGroups(prev => new Set(prev).add(groupId))
-                setOpenGroupId(null)
-                form.reset()
-            } else {
-                toast.error(res.data.message)
-            }
-        } catch {
-            toast.error('Error while sending request')
-        } finally {
-            setIsSubmitting(false)
-        }
+    if (isGettingGroups) {
+        return (
+            <div className="flex min-h-screen items-center justify-center">
+                <Loader2 className="h-6 w-6 animate-spin" />
+            </div>
+        )
     }
 
-    const withdrawRequest = async (groupId: string) => {
-        try {
-            setIsWithdrawing(true)
-
-            const res = await axios.post(
-                `/api/member/group/widrawRequest?groupId=${groupId}`
-            )
-
-            if (res.data.success) {
-                toast.success(res.data.message)
-
-                setAppliedGroups(prev => {
-                    const updated = new Set(prev)
-                    updated.delete(groupId)
-                    return updated
-                })
-
-                setWithdrawGroupId(null)
-            } else {
-                toast.error(res.data.message)
-            }
-        } catch {
-            toast.error('Error while withdrawing request')
-        } finally {
-            setIsWithdrawing(false)
-        }
+    if (!groups.length) {
+        return (
+            <div className="flex min-h-screen items-center justify-center text-muted-foreground">
+                No groups available
+            </div>
+        )
     }
-
-
-
-    /* ---------------- Render ---------------- */
 
     return (
-        <div className="mx-auto my-8 max-w-7xl px-6 space-y-8">
+        <div className="mx-auto my-8 max-w-340 px-6 space-y-8">
 
             {/* Header */}
             <div>
@@ -210,9 +122,6 @@ const JoinGroup = () => {
                     Discover teams and communities you can join
                 </p>
             </div>
-
-            {/* Loading */}
-            {isGettingGroups && <GroupListSkeleton />}
 
             {/* Empty */}
             {!isGettingGroups && groups.length === 0 && (
@@ -224,13 +133,24 @@ const JoinGroup = () => {
             {/* Groups */}
             {!isGettingGroups && groups.length > 0 && (
                 <div className="max-w-5xl mx-auto rounded-2xl border divide-y">
-                    {groups.map(group => {
+                    {groups.map((group: IGroup) => {
                         if (!group._id) return null
                         const groupId = group._id.toString()
 
-                        const isApplied = appliedGroups.has(groupId)
-                        const isLeader = groupLeader.has(groupId)
-                        const isMember = groupMember.has(groupId)
+                        const userId = user?._id?.toString()
+
+                        const isApplied = group.requestedUser?.some(
+                            (r: IRequestedUser) => r.userId.toString() === userId?.toString()
+                        )
+
+                        const isLeader = group.accessTo?.some(
+                            (a: IAccessTo) => a.userId.toString() === userId && a.userRole === 'leader'
+                        )
+
+                        const isMember = group.accessTo?.some(
+                            (a: IAccessTo) => a.userId.toString() === userId && a.userRole === 'member'
+                        )
+
 
                         return (
                             <div
@@ -295,17 +215,20 @@ const JoinGroup = () => {
                                                         <Button variant="outline">Cancel</Button>
                                                     </DialogClose>
 
+                                                    {/* Widraw Request Button */}
                                                     <Button
                                                         variant="destructive"
-                                                        onClick={() => withdrawRequest(groupId)}
-                                                        disabled={isWithdrawing}
+                                                        disabled={withdrawMutation.isPending}
+                                                        onClick={() => withdrawMutation.mutate(groupId)}
                                                     >
-                                                        {isWithdrawing ? (
+                                                        {withdrawMutation.isPending ? (
                                                             <Loader2 className="h-4 w-4 animate-spin" />
                                                         ) : (
                                                             'Confirm Withdraw'
                                                         )}
                                                     </Button>
+
+
                                                 </DialogFooter>
                                             </DialogContent>
                                         </Dialog>
@@ -329,7 +252,7 @@ const JoinGroup = () => {
 
                                                 <Form {...form}>
                                                     <form
-                                                        onSubmit={form.handleSubmit(data => sendRequest(groupId, data))}
+                                                        onSubmit={form.handleSubmit(data => sendRequestMutation.mutate({ groupId, data }))}
                                                         className="space-y-4"
                                                     >
                                                         <FormField
@@ -351,13 +274,15 @@ const JoinGroup = () => {
                                                                 <Button variant="outline">Cancel</Button>
                                                             </DialogClose>
 
-                                                            <Button disabled={isSubmitting}>
-                                                                {isSubmitting ? (
+                                                            {/* Join Request Button */}
+                                                            <Button disabled={sendRequestMutation.isPending}>
+                                                                {sendRequestMutation.isPending ? (
                                                                     <Loader2 className="h-4 w-4 animate-spin" />
                                                                 ) : (
                                                                     'Submit'
                                                                 )}
                                                             </Button>
+
                                                         </DialogFooter>
                                                     </form>
                                                 </Form>
