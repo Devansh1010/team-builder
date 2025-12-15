@@ -1,32 +1,26 @@
 import React from 'react'
 import {
-    Card,
-    CardAction,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card"
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
 
 interface MyCardProps {
-    title: string;
-    description?: string;
-    icon?: React.ReactNode;
-    content?: string | React.ReactNode;
-    footer?: string | React.ReactNode;
+  title: string
+  description?: string
+  icon?: React.ReactNode
+  content?: string | React.ReactNode
+  footer?: string | React.ReactNode
 }
 
-
-const CardTemplete: React.FC<MyCardProps> =
-    ({ title,
-        description,
-        icon,
-        content,
-        footer, }) => {
-        return (
-            <Card
-                className="
+const CardTemplete: React.FC<MyCardProps> = ({ title, description, icon, content, footer }) => {
+  return (
+    <Card
+      className="
         w-full h-full max-w-md mx-auto 
         rounded-lg border transition-all duration-200 cursor-pointer
 
@@ -38,46 +32,40 @@ const CardTemplete: React.FC<MyCardProps> =
         dark:bg-gray-800 dark:text-white dark:border-gray-700 
         dark:hover:border-blue-500 dark:hover:shadow-lg
     "
-            >
-                <CardHeader className="flex justify-between items-center px-4">
-                    <div>
-                        <CardTitle className="text-2xl font-semibold">
-                            {title}
-                        </CardTitle>
+    >
+      <CardHeader className="flex justify-between items-center px-4">
+        <div>
+          <CardTitle className="text-2xl font-semibold">{title}</CardTitle>
 
-                        {description && (
-                            <CardDescription className="text-gray-500 dark:text-gray-400 text-sm">
-                                {description}
-                            </CardDescription>
-                        )}
-                    </div>
+          {description && (
+            <CardDescription className="text-gray-500 dark:text-gray-400 text-sm">
+              {description}
+            </CardDescription>
+          )}
+        </div>
 
-                    {icon && (
-                        <div className="transition-colors hover:text-blue-500 dark:hover:text-blue-300">
-                            <CardAction>
-                                {icon}
-                            </CardAction>
-                        </div>
-                    )}
-                </CardHeader>
+        {icon && (
+          <div className="transition-colors hover:text-blue-500 dark:hover:text-blue-300">
+            <CardAction>{icon}</CardAction>
+          </div>
+        )}
+      </CardHeader>
 
-                <CardContent className="px-4 text-3xl font-bold">
-                    {content}
-                </CardContent>
+      <CardContent className="px-4 text-3xl font-bold">{content}</CardContent>
 
-                {footer && (
-                    <CardFooter className="
+      {footer && (
+        <CardFooter
+          className="
             px-4 text-sm border-t 
             text-gray-500 dark:text-gray-400 
             border-gray-200 dark:border-gray-700
-        ">
-                        {footer}
-                    </CardFooter>
-                )}
-            </Card>
-
-
-        )
-    }
+        "
+        >
+          {footer}
+        </CardFooter>
+      )}
+    </Card>
+  )
+}
 
 export default CardTemplete

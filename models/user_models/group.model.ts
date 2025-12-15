@@ -1,112 +1,115 @@
-import { Schema, model, models } from 'mongoose';
-import { UserRole } from './user.model';
+import { Schema, model, models } from 'mongoose'
+import { UserRole } from './user.model'
 
 export interface IMembers {
-    _id?: Schema.Types.ObjectId,
-    userId: Schema.Types.ObjectId,
-    userRole: UserRole,
-    joinedAt: Date,
-    leftAt: Date | null
+  _id?: Schema.Types.ObjectId
+  userId: Schema.Types.ObjectId
+  userRole: UserRole
+  joinedAt: Date
+  leftAt: Date | null
 }
 
 export interface IAccessTo {
-    _id?: Schema.Types.ObjectId,
-    userId: Schema.Types.ObjectId,
-    userRole: UserRole,
-    joinedAt: Date,
+  _id?: Schema.Types.ObjectId
+  userId: Schema.Types.ObjectId
+  userRole: UserRole
+  joinedAt: Date
 }
 
 export interface IInvitedUser {
-    userInvited: Schema.Types.ObjectId
+  userInvited: Schema.Types.ObjectId
 }
 
 export interface IRequestedUser {
-    userId: Schema.Types.ObjectId,
-    username: string,  
-    msg: string
-    isAccept: boolean
+  userId: Schema.Types.ObjectId
+  username: string
+  msg: string
+  isAccept: boolean
 }
 
 export interface IGroup {
-    _id?: Schema.Types.ObjectId,
-    name: string,
-    desc: string,
-    techStack: string[],
-    imageUrl: string,
-    members: IMembers[]
-    accessTo: IAccessTo[]
-    invitedUsers: IInvitedUser[],
-    requestedUser: IRequestedUser[]
-    createdAt? : Date | undefined
+  _id?: Schema.Types.ObjectId
+  name: string
+  desc: string
+  techStack: string[]
+  imageUrl: string
+  members: IMembers[]
+  accessTo: IAccessTo[]
+  invitedUsers: IInvitedUser[]
+  requestedUser: IRequestedUser[]
+  createdAt?: Date | undefined
 }
 
-const groupSchema = new Schema<IGroup>({
+const groupSchema = new Schema<IGroup>(
+  {
     name: {
-        type: String,
-        min: [2, 'Minimum 2 Character required in Group Name'],
-        required: [true, 'Username Required'],
+      type: String,
+      min: [2, 'Minimum 2 Character required in Group Name'],
+      required: [true, 'Username Required'],
     },
 
     desc: {
-        type: String,
+      type: String,
     },
 
     techStack: {
-        type: [String],
-        required: [true, "techStack is Required"],
+      type: [String],
+      required: [true, 'techStack is Required'],
     },
 
     imageUrl: {
-        type: String,
-        default: "",
+      type: String,
+      default: '',
     },
 
     members: [
-        {
-            userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
-            userRole: { type: String, enum: Object.values(UserRole), required: true },
-            joinedAt: { type: Date, default: Date.now },
-            leftAt: { type: Date, default: null },
-        },
+      {
+        userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+        userRole: { type: String, enum: Object.values(UserRole), required: true },
+        joinedAt: { type: Date, default: Date.now },
+        leftAt: { type: Date, default: null },
+      },
     ],
 
     accessTo: [
-        {
-            userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
-            userRole: { type: String, enum: Object.values(UserRole), required: true },
-            joinedAt: { type: Date, required: true }
-        },
+      {
+        userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+        userRole: { type: String, enum: Object.values(UserRole), required: true },
+        joinedAt: { type: Date, required: true },
+      },
     ],
 
     invitedUsers: [
-        {
-            type: Schema.Types.ObjectId,
-            ref: 'User'
-        }
+      {
+        type: Schema.Types.ObjectId,
+        ref: 'User',
+      },
     ],
-    
-    requestedUser: [
-        {
-            userId: {
-                type: Schema.Types.ObjectId,
-                ref: 'User',
-                reqired: true
-            },
 
-            username:{
-                type: String,
-                required: true
-            },
-            msg:{
-                type: String
-            },
-            isAccept:{
-                type: Boolean,
-                default: false
-            }
-        }
-    ]
-}, { timestamps: true })
+    requestedUser: [
+      {
+        userId: {
+          type: Schema.Types.ObjectId,
+          ref: 'User',
+          reqired: true,
+        },
+
+        username: {
+          type: String,
+          required: true,
+        },
+        msg: {
+          type: String,
+        },
+        isAccept: {
+          type: Boolean,
+          default: false,
+        },
+      },
+    ],
+  },
+  { timestamps: true }
+)
 
 const Group = models.Group || model<IGroup>('Group', groupSchema)
 

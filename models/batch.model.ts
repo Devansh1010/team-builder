@@ -1,10 +1,10 @@
-import { Schema, model, models } from "mongoose";
+import { Schema, model, models } from 'mongoose'
 
 export interface IBatch {
-  id?: Schema.Types.ObjectId;
-  batch_name: string;
-  limit: number;
-  users: string[];
+  id?: Schema.Types.ObjectId
+  batch_name: string
+  limit: number
+  users: string[]
 }
 
 const batchSchema = new Schema<IBatch>(
@@ -27,8 +27,8 @@ const batchSchema = new Schema<IBatch>(
     ],
   },
   { timestamps: true }
-);
+)
 
-const Batch = models.Batch || model<IBatch>("Batch", batchSchema);
+const Batch = models.Batch || model<IBatch>('Batch', batchSchema)
 
-export default Batch;
+export default Batch

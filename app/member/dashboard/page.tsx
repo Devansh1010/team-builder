@@ -1,9 +1,8 @@
 import GroupPage from '@/components/member/group/groupDetails'
 
 const page = () => {
-
   return (
-    <div className='max-w-screen'>
+    <div className="max-w-screen">
       <GroupPage />
     </div>
   )

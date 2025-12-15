@@ -1,236 +1,224 @@
-"use client"
+'use client'
 
-import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
-import { signUpSchema } from '@/lib/schemas/signUpSchema';
-import axios, { AxiosError } from "axios"
-import { toast } from "sonner"
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Loader2Icon } from "lucide-react"
-import Link from 'next/link';
+import React, { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
+import { signUpSchema } from '@/lib/schemas/signUpSchema'
+import axios, { AxiosError } from 'axios'
+import { toast } from 'sonner'
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Loader2Icon } from 'lucide-react'
+import Link from 'next/link'
 import { useDebounceCallback } from 'usehooks-ts'
 
 const RegisterPage: React.FC = () => {
-    const [username, setUsername] = React.useState('');
-    const [isUsernameChecking, setIsUsernameChecking] = React.useState(false);
-    const [usernameMessage, setUsernameMessage] = useState('');
-    const [isSubmiting, setIsSubmiting] = React.useState(false);
-    const debounced = useDebounceCallback(setUsername, 500)
+  const [username, setUsername] = React.useState('')
+  const [isUsernameChecking, setIsUsernameChecking] = React.useState(false)
+  const [usernameMessage, setUsernameMessage] = useState('')
+  const [isSubmiting, setIsSubmiting] = React.useState(false)
+  const debounced = useDebounceCallback(setUsername, 500)
 
-    const router = useRouter();
+  const router = useRouter()
 
-    // Username Unique check
-    useEffect(() => {
-        const checkIsUsernameAvailable = async () => {
-            if (username) {
-                setIsUsernameChecking(true)
-                setUsernameMessage('')
+  // Username Unique check
+  useEffect(() => {
+    const checkIsUsernameAvailable = async () => {
+      if (username) {
+        setIsUsernameChecking(true)
+        setUsernameMessage('')
 
-                try {
-                    const responce = await axios.get(`/api/auth/check-username-unique?username=${username}`)
-
-                    setUsernameMessage(responce.data?.message)
-
-                } catch (error) {
-
-                    setUsernameMessage("Username not available")
-
-                } finally {
-                    setIsUsernameChecking(false)
-                    // setUsernameMessage('')
-                }
-            }
-        }
-
-        checkIsUsernameAvailable()
-    }, [username])
-
-
-    const onSubmit = async (data: z.infer<typeof signUpSchema>) => {
-        setIsSubmiting(true);
         try {
-            const res = await axios.post("/api/auth/sign-up", data);
-            //TODO: check if res has success message or not then show toast
-            console.log(res)
-            if (res.data.success) {
-                toast.success("Success", {
-                    description: res.data.message
-                })
-            }
-            router.replace("/auth/verify-code")
-        } catch (error: any) {
-            let axiosError = error as AxiosError
-            console.error("catch sign-up.tsx: Registration error:", error);
-            toast.error("Failed", {
-                description: "Error signing-up"
-            })
+          const responce = await axios.get(`/api/auth/check-username-unique?username=${username}`)
+
+          setUsernameMessage(responce.data?.message)
+        } catch (error) {
+          setUsernameMessage('Username not available')
         } finally {
-            setIsSubmiting(false)
+          setIsUsernameChecking(false)
+          // setUsernameMessage('')
         }
+      }
     }
 
-    const form = useForm<z.infer<typeof signUpSchema>>({
-        resolver: zodResolver(signUpSchema),
-        defaultValues: {
-            username: '',
-            lname: '',
-            fname: '',
-            email: '',
-            password: '',
-        }
-    })
-    return (
+    checkIsUsernameAvailable()
+  }, [username])
 
-        <main className="min-h-screen flex flex-col justify-center px-6 py-12 lg:px-8">
-            <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
-                <h1 className="text-3xl font-bold tracking-tight ">Create your account</h1>
-                <p className="mt-2 text-sm text-gray-400">
-                    Already a member?{" "}
-                    <Link href="/sign-in" className="font-medium text-indigo-600 hover:underline">
-                        Sign in
-                    </Link>
-                </p>
-            </div>
+  const onSubmit = async (data: z.infer<typeof signUpSchema>) => {
+    setIsSubmiting(true)
+    try {
+      const res = await axios.post('/api/auth/sign-up', data)
+      //TODO: check if res has success message or not then show toast
+      console.log(res)
+      if (res.data.success) {
+        toast.success('Success', {
+          description: res.data.message,
+        })
+      }
+      router.replace('/auth/verify-code')
+    } catch (error: any) {
+      let axiosError = error as AxiosError
+      console.error('catch sign-up.tsx: Registration error:', error)
+      toast.error('Failed', {
+        description: 'Error signing-up',
+      })
+    } finally {
+      setIsSubmiting(false)
+    }
+  }
 
-            <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md p-8 shadow rounded-2xl border border-gray-100">
-                <Form {...form}>
-                    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                        <FormField
-                            name="username"
-                            control={form.control}
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Username</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            placeholder="Enter your username"
-                                            {...field}
-                                            onChange={(e) => {
-                                                field.onChange(e);
-                                                debounced(e.target.value);
-                                            }}
-                                        />
+  const form = useForm<z.infer<typeof signUpSchema>>({
+    resolver: zodResolver(signUpSchema),
+    defaultValues: {
+      username: '',
+      lname: '',
+      fname: '',
+      email: '',
+      password: '',
+    },
+  })
+  return (
+    <main className="min-h-screen flex flex-col justify-center px-6 py-12 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
+        <h1 className="text-3xl font-bold tracking-tight ">Create your account</h1>
+        <p className="mt-2 text-sm text-gray-400">
+          Already a member?{' '}
+          <Link href="/sign-in" className="font-medium text-indigo-600 hover:underline">
+            Sign in
+          </Link>
+        </p>
+      </div>
 
-                                    </FormControl>
+      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md p-8 shadow rounded-2xl border border-gray-100">
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <FormField
+              name="username"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Username</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter your username"
+                      {...field}
+                      onChange={(e) => {
+                        field.onChange(e)
+                        debounced(e.target.value)
+                      }}
+                    />
+                  </FormControl>
 
-                                    <p
-                                        className={`text-sm mt-1 ${usernameMessage === 'Username Available' ? 'text-green-600' : 'text-red-600'
-                                            }`}
-                                    >
-                                        {isUsernameChecking ? (
-                                            <span className="flex items-center gap-2">
-                                                <Loader2Icon className="h-4 w-4 animate-spin" />
-                                                Checking...
-                                            </span>
-                                        ) : (
-                                            `${usernameMessage}`
-                                        )}
+                  <p
+                    className={`text-sm mt-1 ${
+                      usernameMessage === 'Username Available' ? 'text-green-600' : 'text-red-600'
+                    }`}
+                  >
+                    {isUsernameChecking ? (
+                      <span className="flex items-center gap-2">
+                        <Loader2Icon className="h-4 w-4 animate-spin" />
+                        Checking...
+                      </span>
+                    ) : (
+                      `${usernameMessage}`
+                    )}
+                  </p>
 
-                                    </p>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              name="fname"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>First Name</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter your first name"
+                      {...field}
+                      onChange={field.onChange}
+                    />
+                  </FormControl>
 
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            name="fname"
-                            control={form.control}
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>First Name</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            placeholder="Enter your first name"
-                                            {...field}
-                                            onChange={field.onChange}
-                                        />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              name="lname"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Last Name</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Enter your Last name"
+                      {...field}
+                      onChange={field.onChange}
+                    />
+                  </FormControl>
 
-                                    </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            name="lname"
-                            control={form.control}
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Last Name</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            placeholder="Enter your Last name"
-                                            {...field}
-                                            onChange={field.onChange}
-                                        />
+            <FormField
+              name="email"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email address</FormLabel>
+                  <FormControl>
+                    <Input type="email" placeholder="Enter your email" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-                                    </FormControl>
+            <FormField
+              name="password"
+              control={form.control}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Password</FormLabel>
+                  <FormControl>
+                    <Input type="password" placeholder="Create a strong password" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+            <Button type="submit" className="w-full" disabled={isSubmiting}>
+              {isSubmiting ? (
+                <>
+                  <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
+                  Creating account...
+                </>
+              ) : (
+                'Sign Up'
+              )}
+            </Button>
+          </form>
+        </Form>
+      </div>
+    </main>
+  )
+}
 
-                        <FormField
-                            name="email"
-                            control={form.control}
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Email address</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            type="email"
-                                            placeholder="Enter your email"
-                                            {...field}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-
-                        <FormField
-                            name="password"
-                            control={form.control}
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Password</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            type="password"
-                                            placeholder="Create a strong password"
-                                            {...field}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-
-                        <Button
-                            type="submit"
-                            className="w-full"
-                            disabled={isSubmiting}
-                        >
-                            {isSubmiting ? (
-                                <>
-                                    <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
-                                    Creating account...
-                                </>
-                            ) : (
-                                "Sign Up"
-                            )}
-                        </Button>
-                    </form>
-                </Form>
-            </div>
-        </main >
-    );
-};
-
-export default RegisterPage;
+export default RegisterPage

@@ -1,5 +1,5 @@
 // utils/nextResponse.ts
-import { NextResponse } from "next/server";
+import { NextResponse } from 'next/server'
 
 export enum StatusCode {
   OK = 200,
@@ -15,19 +15,17 @@ export enum StatusCode {
   SERVICE_UNAVAILABLE = 503,
 }
 
-
 type ApiResponse<T> = {
-  success: boolean;
-  message: string;
-  data?: T;
+  success: boolean
+  message: string
+  data?: T
   error?: {
-    code: string;
-    message: string;
-    details?: any;
-  };
-};
+    code: string
+    message: string
+    details?: any
+  }
+}
 
-export function createResponse<T>(payload: ApiResponse<T>, status: StatusCode = StatusCode.OK
-) {
-  return NextResponse.json(payload, { status });
+export function createResponse<T>(payload: ApiResponse<T>, status: StatusCode = StatusCode.OK) {
+  return NextResponse.json(payload, { status })
 }

@@ -4,15 +4,15 @@ import { useState } from 'react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
-import { Calendar } from "@/components/ui/calendar"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Calendar } from '@/components/ui/calendar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion"
+} from '@/components/ui/accordion'
 
 import {
   Dialog,
@@ -23,7 +23,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
+} from '@/components/ui/dialog'
 
 import { Loader2 } from 'lucide-react'
 
@@ -34,14 +34,10 @@ import { IRequestedUser } from '@/models/user_models/group.model'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { fetchActiveGroups, handleGroupRequest } from '@/lib/api/group.api'
 
-
 const GroupPage = () => {
   const [date, setDate] = useState<Date | undefined>(new Date())
 
-  const {
-    data: activeGroup = [],
-    isLoading,
-  } = useQuery({
+  const { data: activeGroup = [], isLoading } = useQuery({
     queryKey: ['activeGroups'],
     queryFn: fetchActiveGroups,
   })
@@ -84,10 +80,8 @@ const GroupPage = () => {
     <div className="mx-auto my-6 max-w-340 flex gap-6">
       {/* Main Card */}
       <div className="flex-1 rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 px-8 py-6 shadow-sm">
-
         {/* Header */}
         <div className="flex items-center justify-between">
-
           {/* Group Title */}
           <h1 className="text-2xl font-semibold tracking-wide text-gray-900 dark:text-gray-100">
             {group.name.toUpperCase()}
@@ -112,7 +106,6 @@ const GroupPage = () => {
 
         {/* Content */}
         <div className="flex flex-col gap-6">
-
           {/* Description */}
           <Accordion type="single" collapsible>
             <AccordionItem value="desc" className="border-none">
@@ -138,12 +131,11 @@ const GroupPage = () => {
               </Badge>
             ))}
           </div>
-
         </div>
       </div>
 
       {/* Calendar Card */}
-      <div className='flex- flex-col'>
+      <div className="flex- flex-col">
         <div className="rounded-2xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-4 shadow-sm">
           <Calendar
             mode="single"
@@ -170,7 +162,7 @@ const GroupPage = () => {
                   <div className="flex items-center gap-3">
                     {/* Avatar */}
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-indigo-100 text-sm font-semibold text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300">
-                      {(user.username?.charAt(0) || "?").toUpperCase()}
+                      {(user.username?.charAt(0) || '?').toUpperCase()}
                     </div>
 
                     {/* Name */}
@@ -191,11 +183,9 @@ const GroupPage = () => {
 
                     <DialogContent className="sm:max-w-[420px] rounded-2xl">
                       <DialogHeader>
-                        <DialogTitle className="text-lg">
-                          {user.username}
-                        </DialogTitle>
+                        <DialogTitle className="text-lg">{user.username}</DialogTitle>
                         <DialogDescription className="mt-2 text-sm leading-relaxed text-gray-600 dark:text-gray-400">
-                          {user.msg || "No message provided."}
+                          {user.msg || 'No message provided.'}
                         </DialogDescription>
                       </DialogHeader>
 
@@ -234,7 +224,6 @@ const GroupPage = () => {
                         >
                           {requestMutation.isPending ? 'Rejecting' : 'Reject'}
                         </Button>
-
                       </DialogFooter>
                     </DialogContent>
                   </Dialog>
@@ -243,11 +232,8 @@ const GroupPage = () => {
             })}
           </div>
         )}
-
-
       </div>
-
-    </div >
+    </div>
   )
 }
 

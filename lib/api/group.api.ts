@@ -12,7 +12,6 @@ export const fetchAllGroups = async () => {
   return res.data.data
 }
 
-
 export const handleGroupRequest = async ({
   groupId,
   requestedUserId,
@@ -22,14 +21,18 @@ export const handleGroupRequest = async ({
   requestedUserId: string
   isAccept: boolean
 }) => {
-  return axios.post(`/api/member/group/accept-reject-request`,null,
-    {
-      params: { groupId, requestedUser: requestedUserId, isAccept },
-    }
-  )
+  return axios.post(`/api/member/group/accept-reject-request`, null, {
+    params: { groupId, requestedUser: requestedUserId, isAccept },
+  })
 }
 
-export const sendJoinRequest = async ({ groupId, data }: { groupId: string; data: JoinGroupSchema }) => {
+export const sendJoinRequest = async ({
+  groupId,
+  data,
+}: {
+  groupId: string
+  data: JoinGroupSchema
+}) => {
   return axios.post(`/api/member/group/joinGroup?groupId=${groupId}`, data)
 }
 
@@ -40,7 +43,6 @@ export const widrawRequest = async (groupId: string) => {
 export const joinRequest = async (groupId: string) => {
   const res = await axios.post(`/api/member/group/joinGroup?groupId=${groupId}`)
   return {
-    message: res.data.message
-
+    message: res.data.message,
   }
 }
