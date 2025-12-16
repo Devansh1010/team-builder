@@ -33,6 +33,7 @@ import { IRequestedUser } from '@/models/user_models/group.model'
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { fetchActiveGroups, handleGroupRequest } from '@/lib/api/group.api'
+import CreateGroup from './createGroup'
 
 const GroupPage = () => {
   const [date, setDate] = useState<Date | undefined>(new Date())
@@ -66,9 +67,37 @@ const GroupPage = () => {
   if (!activeGroup.length) {
     return (
       <div className="flex min-h-screen items-center justify-center px-4">
-        <p className="text-center text-muted-foreground text-lg">
-          You are not part of any group yet.
-        </p>
+        <div className="max-w-md text-center space-y-6">
+          {/* Heading */}
+          <h2 className="text-2xl font-semibold">You’re not part of any group yet</h2>
+
+          {/* Sub text */}
+          <p className="text-muted-foreground">
+            Create a new group or join an existing one to start collaborating with others.
+          </p>
+
+          {/* Actions */}
+          <div className="flex items-center justify-center gap-4">
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button>Create Group</Button>
+              </DialogTrigger>
+
+              <DialogContent className="max-w-lg">
+                <DialogHeader>
+                  <DialogTitle>Create Group</DialogTitle>
+                  <DialogDescription>
+                    Set up your group by adding a name, description and tech stack.
+                  </DialogDescription>
+                </DialogHeader>
+
+                <CreateGroup />
+              </DialogContent>
+            </Dialog>
+
+            <Button variant="outline">Join Group</Button>
+          </div>
+        </div>
       </div>
     )
   }

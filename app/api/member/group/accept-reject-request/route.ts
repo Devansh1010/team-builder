@@ -31,6 +31,19 @@ export async function POST(req: NextRequest) {
       return createResponse({ success: false, message: 'Invalid request' }, StatusCode.BAD_REQUEST)
     }
 
+    //check if user created a group or not
+
+    if (isAccept) {
+      const userCreatedGroup = await User.findById(requestedUserId).select('groups')
+
+      if (userCreatedGroup.groups?.length) {
+        return createResponse(
+          { success: false, message: 'Invalid request' },
+          StatusCode.BAD_REQUEST
+        )
+      }
+    }
+
     // 3. Check if this user is leader of the group
     const currentUserData = await User.findById(user.id).select('groups')
 

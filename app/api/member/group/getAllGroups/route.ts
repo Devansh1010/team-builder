@@ -25,11 +25,13 @@ export async function GET() {
       return createResponse({ success: false, message: 'No Groups Found' }, StatusCode.NOT_FOUND)
     }
 
+    const filterdGroups = allGroups.filter((group) => group.accessTo.length > 0)
+
     return createResponse(
       {
         success: true,
         message: 'Found Some Groups',
-        data: allGroups,
+        data: filterdGroups,
       },
       StatusCode.OK
     )

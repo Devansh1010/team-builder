@@ -50,17 +50,12 @@ export async function POST(req: NextRequest) {
       { 'requestedGroups.$': 1 }
     )
 
-    console.log(groupRequest)
-    console.log(userRequest)
-
     if (groupRequest || userRequest) {
       return createResponse(
         { success: false, message: 'Already Requested' },
         StatusCode.BAD_REQUEST
       )
     }
-
-    console.log('Get Here.....')
 
     const session = await mongoose.startSession()
     session.startTransaction()

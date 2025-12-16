@@ -64,6 +64,8 @@ export async function GET(req: NextRequest) {
         _id: { $in: groupIds },
       })
 
+      console.log(allGroups)
+
       return createResponse(
         {
           success: true,

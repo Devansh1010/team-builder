@@ -46,3 +46,17 @@ export const joinRequest = async (groupId: string) => {
     message: res.data.message,
   }
 }
+
+export const createGroup = async ({
+  name,
+  desc,
+  techStack,
+}: {
+  name: string
+  desc?: string
+  techStack: string[]
+}) => {
+  const res = await axios.post(`/api/member/group/createGroup`, { name, desc, techStack })
+
+  return res.data.data
+}

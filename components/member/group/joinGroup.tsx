@@ -39,13 +39,9 @@ import { IAccessTo, IGroup, IRequestedUser } from '@/models/user_models/group.mo
 import { fetchCurrentActiveUser } from '@/lib/api/user.api'
 import { useActiveUser } from '@/hooks/useActiveUser'
 
-/* ---------------- Page ---------------- */
-
 const JoinGroup = () => {
   const [openGroupId, setOpenGroupId] = useState<string | null>(null)
   const [withdrawGroupId, setWithdrawGroupId] = useState<string | null>(null)
-
-  /* ---------------- Effects ---------------- */
 
   const {
     data: groups = [],
