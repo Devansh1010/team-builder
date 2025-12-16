@@ -23,7 +23,10 @@ export async function POST(req: NextRequest) {
 
     await dbConnect()
 
-    const userGroups = await User.findById(data.id).select('groups')
+    const userGroups = await User.findById(data.id).select('groups requestedGroups')
+
+    console.log('-----------------------------------------')
+    console.log(userGroups)
 
     if (userGroups?.groups?.length > 0) {
       return createResponse(
@@ -31,6 +34,13 @@ export async function POST(req: NextRequest) {
         StatusCode.BAD_REQUEST
       )
     }
+
+    const appliedGroups = userGroups.requestedGroups.map((id: { groupId: string }) =>
+      id.groupId.toString()
+    )
+
+    console.log('+++++++++++++++++++++++++++++++++++++++++')
+    console.log('applied Groups:- ', appliedGroups)
 
     const body = await req.json()
 
@@ -57,8 +67,6 @@ export async function POST(req: NextRequest) {
         StatusCode.BAD_REQUEST
       )
     }
-
-    // logic for unique group name check
 
     const session = await mongoose.startSession()
     session.startTransaction()
@@ -94,13 +102,33 @@ export async function POST(req: NextRequest) {
 
       group = group[0]
 
-      if (!group) {
-        return createResponse(
+      //Remove all the requests form other groups
+
+      if (appliedGroups.length > 0) {
+        console.log('Get in the Condition')
+        for (const groupId of appliedGroups) {
+          const updatedGroup = await Group.findByIdAndUpdate(
+            groupId,
+            {
+              $pull: {
+                requestedUser: { userId: data.id },
+              },
+            },
+            { session }
+          )
+
+          console.log('***********************')
+          console.log(updatedGroup)
+        }
+
+        await User.findByIdAndUpdate(
+          data.id,
           {
-            success: false,
-            message: 'Group Not Created',
+            $set: {
+              requestedGroups: [],
+            },
           },
-          StatusCode.CONFLICT
+          { session, new: true }
         )
       }
 

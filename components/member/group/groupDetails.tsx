@@ -78,23 +78,7 @@ const GroupPage = () => {
 
           {/* Actions */}
           <div className="flex items-center justify-center gap-4">
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button>Create Group</Button>
-              </DialogTrigger>
-
-              <DialogContent className="max-w-lg">
-                <DialogHeader>
-                  <DialogTitle>Create Group</DialogTitle>
-                  <DialogDescription>
-                    Set up your group by adding a name, description and tech stack.
-                  </DialogDescription>
-                </DialogHeader>
-
-                <CreateGroup />
-              </DialogContent>
-            </Dialog>
-
+            <CreateGroup />
             <Button variant="outline">Join Group</Button>
           </div>
         </div>
