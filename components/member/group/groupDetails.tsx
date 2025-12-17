@@ -17,17 +17,29 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 
-import { Divide, Loader2 } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 
 import { IMembers, IRequestedUser } from '@/models/user_models/group.model'
 
-//tanstack Quert
+import {
+  Form,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormControl,
+  FormMessage,
+} from '@/components/ui/form'
 
+//tanstack Quert
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { fetchActiveGroups, handleGroupRequest } from '@/lib/api/group.api'
+import { fetchActiveGroups, handleGroupRequest, handleLeaveGroup } from '@/lib/api/group.api'
 import CreateGroup from './createGroup'
 import { IUser } from '@/models/user_models/user.model'
 import { Badge } from '@/components/ui/badge'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { joinGroupSchema, JoinGroupSchema } from '@/lib/schemas/group/SendRequest'
+import { Input } from '@/components/ui/input'
 
 const GroupPage = () => {
   const [date, setDate] = useState<Date | undefined>(new Date())
@@ -47,6 +59,24 @@ const GroupPage = () => {
     },
     onError: () => {
       toast.error('Failed to update request')
+    },
+  })
+
+  const form = useForm<JoinGroupSchema>({
+    resolver: zodResolver(joinGroupSchema),
+    defaultValues: {
+      message: '',
+    },
+  })
+
+  const leaveGroup = useMutation({
+    mutationFn: handleLeaveGroup,
+    onSuccess: () => {
+      toast.success('Group Leaved Successfully')
+      queryClient.invalidateQueries({ queryKey: ['activeGroups'] })
+    },
+    onError: () => {
+      toast.error('Failed to Leave Group')
     },
   })
 
@@ -146,24 +176,43 @@ const GroupPage = () => {
                     </DialogTrigger>
 
                     <DialogContent className="sm:max-w-[420px] rounded-2xl">
-                      <DialogHeader>
-                        <DialogTitle>Leave this group?</DialogTitle>
-                        <DialogDescription>
-                          You will lose access to group content and activities.
-                        </DialogDescription>
-                      </DialogHeader>
+                      <Form {...form}>
+                        <form
+                          onSubmit={form.handleSubmit((data) =>
+                            leaveGroup.mutate({ groupId: group._id.toString(), data })
+                          )}
+                          className="space-y-4"
+                        >
+                          <FormField
+                            control={form.control}
+                            name="message"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Message</FormLabel>
+                                <FormControl>
+                                  <Input {...field} />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
 
-                      <DialogFooter className="flex gap-2">
-                        <DialogClose asChild>
-                          <Button variant="outline" className="flex-1">
-                            Cancel
-                          </Button>
-                        </DialogClose>
+                          <DialogFooter>
+                            <DialogClose asChild>
+                              <Button variant="outline">Cancel</Button>
+                            </DialogClose>
 
-                        <Button variant="destructive" className="flex-1">
-                          Leave Group
-                        </Button>
-                      </DialogFooter>
+                            {/* Join Request Button */}
+                            <Button disabled={leaveGroup.isPending}>
+                              {leaveGroup.isPending ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                'Submit'
+                              )}
+                            </Button>
+                          </DialogFooter>
+                        </form>
+                      </Form>
                     </DialogContent>
                   </Dialog>
                 </div>

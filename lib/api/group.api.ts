@@ -40,6 +40,16 @@ export const widrawRequest = async (groupId: string) => {
   return axios.post(`/api/member/group/widrawRequest?groupId=${groupId}`)
 }
 
+export const handleLeaveGroup = async ({
+  groupId,
+  data,
+}: {
+  groupId: string
+  data: JoinGroupSchema
+}) => {
+  return axios.post(`/api/member/group/leaveGroup?groupId=${groupId}`, data)
+}
+
 export const joinRequest = async (groupId: string) => {
   const res = await axios.post(`/api/member/group/joinGroup?groupId=${groupId}`)
   return {

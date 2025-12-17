@@ -68,14 +68,14 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // ---------------------------
     // 6. Transaction starts
-    // ---------------------------
+
     const session = await mongoose.startSession()
     session.startTransaction()
 
     try {
       // Remove user from accessTo array
+      console.log('Get here')
       const updatedGroup = await Group.findByIdAndUpdate(
         groupId,
         {
@@ -83,6 +83,8 @@ export async function POST(req: NextRequest) {
         },
         { session, new: true }
       )
+
+      console.log(updatedGroup)
 
       // Mark leftAt time for member
       await Group.findOneAndUpdate(

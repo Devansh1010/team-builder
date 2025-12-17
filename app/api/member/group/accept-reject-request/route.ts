@@ -102,6 +102,9 @@ export async function POST(req: NextRequest) {
                 userRole: UserRole.MEMBER,
                 joinedAt: new Date(),
               },
+            },
+
+            $addToSet: {
               members: {
                 userId: requestedUserId,
                 username: userCreatedGroup.username,

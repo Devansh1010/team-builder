@@ -36,7 +36,6 @@ import {
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { fetchAllGroups, sendJoinRequest, widrawRequest } from '@/lib/api/group.api'
 import { IAccessTo, IGroup, IRequestedUser } from '@/models/user_models/group.model'
-import { fetchCurrentActiveUser } from '@/lib/api/user.api'
 import { useActiveUser } from '@/hooks/useActiveUser'
 
 const JoinGroup = () => {
