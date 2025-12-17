@@ -19,11 +19,7 @@ type ApiResponse<T> = {
   success: boolean
   message: string
   data?: T
-  error?: {
-    code: string
-    message: string
-    details?: any
-  }
+  error?: T
 }
 
 export function createResponse<T>(payload: ApiResponse<T>, status: StatusCode = StatusCode.OK) {
