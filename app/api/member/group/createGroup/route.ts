@@ -25,9 +25,6 @@ export async function POST(req: NextRequest) {
 
     const userGroups = await User.findById(data.id).select('groups requestedGroups')
 
-    console.log('-----------------------------------------')
-    console.log(userGroups)
-
     if (userGroups?.groups?.length > 0) {
       return createResponse(
         { success: false, message: 'You are already part of a group' },
@@ -38,9 +35,6 @@ export async function POST(req: NextRequest) {
     const appliedGroups = userGroups.requestedGroups.map((id: { groupId: string }) =>
       id.groupId.toString()
     )
-
-    console.log('+++++++++++++++++++++++++++++++++++++++++')
-    console.log('applied Groups:- ', appliedGroups)
 
     const body = await req.json()
 
@@ -105,7 +99,6 @@ export async function POST(req: NextRequest) {
       //Remove all the requests form other groups
 
       if (appliedGroups.length > 0) {
-        console.log('Get in the Condition')
         for (const groupId of appliedGroups) {
           const updatedGroup = await Group.findByIdAndUpdate(
             groupId,
@@ -116,9 +109,6 @@ export async function POST(req: NextRequest) {
             },
             { session }
           )
-
-          console.log('***********************')
-          console.log(updatedGroup)
         }
 
         await User.findByIdAndUpdate(

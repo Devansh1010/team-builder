@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
         { session }
       )
 
-      const userUpdated = await User.findByIdAndUpdate(
+      await User.findByIdAndUpdate(
         data.id,
         {
           $addToSet: {
@@ -85,9 +85,6 @@ export async function POST(req: NextRequest) {
         },
         { session, new: true }
       )
-
-      console.log('_____________________')
-      console.log(userUpdated)
 
       // ! if want to store logs for requests also:-
       // await GroupLog.findOneAndUpdate(

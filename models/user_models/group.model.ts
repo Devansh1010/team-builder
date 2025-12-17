@@ -4,6 +4,7 @@ import { UserRole } from './user.model'
 export interface IMembers {
   _id?: Schema.Types.ObjectId
   userId: Schema.Types.ObjectId
+  username: string
   userRole: UserRole
   joinedAt: Date
   leftAt: Date | null
@@ -12,12 +13,14 @@ export interface IMembers {
 export interface IAccessTo {
   _id?: Schema.Types.ObjectId
   userId: Schema.Types.ObjectId
+  username: string
   userRole: UserRole
   joinedAt: Date
 }
 
 export interface IInvitedUser {
-  userInvited: Schema.Types.ObjectId
+  userId: Schema.Types.ObjectId
+  username: string
 }
 
 export interface IRequestedUser {
@@ -65,6 +68,10 @@ const groupSchema = new Schema<IGroup>(
     members: [
       {
         userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+        username: {
+          type: String,
+          required: true,
+        },
         userRole: { type: String, enum: Object.values(UserRole), required: true },
         joinedAt: { type: Date, default: Date.now },
         leftAt: { type: Date, default: null },
@@ -74,6 +81,10 @@ const groupSchema = new Schema<IGroup>(
     accessTo: [
       {
         userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+        username: {
+          type: String,
+          required: true,
+        },
         userRole: { type: String, enum: Object.values(UserRole), required: true },
         joinedAt: { type: Date, required: true },
       },
@@ -81,8 +92,14 @@ const groupSchema = new Schema<IGroup>(
 
     invitedUsers: [
       {
-        type: Schema.Types.ObjectId,
-        ref: 'User',
+        userId: {
+          type: Schema.Types.ObjectId,
+          ref: 'User',
+        },
+        username: {
+          type: String,
+          required: true,
+        },
       },
     ],
 

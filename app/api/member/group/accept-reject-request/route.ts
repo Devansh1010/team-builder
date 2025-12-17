@@ -33,9 +33,11 @@ export async function POST(req: NextRequest) {
 
     //check if user created a group or not
 
-    if (isAccept) {
-      const userCreatedGroup = await User.findById(requestedUserId).select('groups')
+    const userCreatedGroup = await User.findById(requestedUserId).select(
+      'groups username email -password avatar'
+    )
 
+    if (isAccept) {
       if (userCreatedGroup.groups?.length) {
         return createResponse(
           { success: false, message: 'Invalid request' },
@@ -96,11 +98,13 @@ export async function POST(req: NextRequest) {
             $push: {
               accessTo: {
                 userId: requestedUserId,
+                username: userCreatedGroup.username,
                 userRole: UserRole.MEMBER,
                 joinedAt: new Date(),
               },
               members: {
                 userId: requestedUserId,
+                username: userCreatedGroup.username,
                 userRole: UserRole.MEMBER,
                 joinedAt: new Date(),
               },
