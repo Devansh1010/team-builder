@@ -1,7 +1,6 @@
 import { createResponse, StatusCode } from '@/lib/createResponce'
 import { dbConnect } from '@/lib/dbConnect'
 import { NextRequest } from 'next/server'
-import mongoose from 'mongoose'
 import Group from '@/models/user_models/group.model'
 import { VerifyUser } from '@/lib/verifyUser/userVerification'
 import { createTaskSchema } from '@/lib/schemas/task/createTask'
@@ -38,6 +37,21 @@ export async function POST(req: NextRequest) {
     }
 
     const { title, description, status, priority, assignedTo, dueDate } = parsed.data
+
+    if (assignedTo) {
+      const ids = assignedTo.map((u) => u.userId)
+      const uniqueIds = new Set(ids)
+
+      if (ids.length !== uniqueIds.size) {
+        return createResponse(
+          {
+            success: false,
+            message: 'Duplicate assignees are not allowed',
+          },
+          StatusCode.BAD_REQUEST
+        )
+      }
+    }
 
     // dueDate must be in future
     if (dueDate && new Date(dueDate) <= new Date()) {
