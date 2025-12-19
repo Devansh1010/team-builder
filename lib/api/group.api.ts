@@ -21,9 +21,13 @@ export const handleGroupRequest = async ({
   requestedUserId: string
   isAccept: boolean
 }) => {
-  return axios.post(`/api/member/group/accept-reject-request`, null, {
+  const res = await axios.post(`/api/member/group/accept-reject-request`, null, {
     params: { groupId, requestedUser: requestedUserId, isAccept },
   })
+
+  console.log('+++++++++++++++++++++++++++')
+  console.log(res.data)
+  return res.data
 }
 
 export const sendJoinRequest = async ({

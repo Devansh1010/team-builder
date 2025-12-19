@@ -78,6 +78,7 @@ export async function POST(req: NextRequest) {
               {
                 userId: data.id,
                 userRole: UserRole.LEADER,
+                username: data.username,
                 joinedAt: new Date(),
               },
             ],
@@ -85,6 +86,7 @@ export async function POST(req: NextRequest) {
               {
                 userId: data.id,
                 userRole: UserRole.LEADER,
+                username: data.username,
                 joinedAt: new Date(),
                 leftAt: null,
               },
