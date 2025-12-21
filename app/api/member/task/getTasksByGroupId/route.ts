@@ -42,6 +42,7 @@ export async function GET(req: NextRequest) {
         {
           success: false,
           message: 'No Tasks For this Group',
+          data: []
         },
         StatusCode.NOT_FOUND
       )
@@ -49,17 +50,17 @@ export async function GET(req: NextRequest) {
 
     return createResponse(
       {
-        success: false,
-        message: 'Error While Fetching Group',
-        data: groupTasks,
+        success: true,
+        message: 'Tasks Found',
+        data: groupTasks || [],
       },
-      StatusCode.INTERNAL_ERROR
+      StatusCode.OK
     )
   } catch (error) {
     return createResponse(
       {
         success: false,
-        message: 'Error While Fetching Group',
+        message: 'Error While Fetching Tasks',
         data: error,
       },
       StatusCode.INTERNAL_ERROR
