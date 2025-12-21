@@ -5,6 +5,7 @@ import Group from '@/models/user_models/group.model'
 import { VerifyUser } from '@/lib/verifyUser/userVerification'
 import { createTaskSchema } from '@/lib/schemas/task/createTask'
 import Task from '@/models/user_models/task.model'
+import User from '@/models/user_models/user.model'
 
 export async function POST(req: NextRequest) {
   try {
@@ -24,6 +25,8 @@ export async function POST(req: NextRequest) {
     const { searchParams } = new URL(req.url)
     const groupId = searchParams.get('groupId')
 
+    console.log('Group Id:- ', groupId)
+
     const parsed = createTaskSchema.safeParse(body)
 
     if (!parsed.success) {
@@ -38,19 +41,19 @@ export async function POST(req: NextRequest) {
 
     const { title, description, status, priority, assignedTo, dueDate } = parsed.data
 
-    if (assignedTo) {
-      const ids = assignedTo.map((u) => u.userId)
-      const uniqueIds = new Set(ids)
+    await dbConnect()
 
-      if (ids.length !== uniqueIds.size) {
-        return createResponse(
-          {
-            success: false,
-            message: 'Duplicate assignees are not allowed',
-          },
-          StatusCode.BAD_REQUEST
-        )
-      }
+    let assignedUsers: { userId: string; username: string }[] = []
+
+    if (assignedTo?.length) {
+      const users = await User.find({
+        username: { $in: assignedTo },
+      })
+
+      assignedUsers = users.map((user) => ({
+        userId: user._id,
+        username: user.username,
+      }))
     }
 
     // dueDate must be in future
@@ -63,8 +66,6 @@ export async function POST(req: NextRequest) {
         StatusCode.BAD_REQUEST
       )
     }
-
-    await dbConnect()
 
     const isMember = await Group.exists({
       _id: groupId,
@@ -81,7 +82,7 @@ export async function POST(req: NextRequest) {
       groupId,
       status,
       priority,
-      assignedTo,
+      assignedTo: assignedUsers,
       dueDate,
       createdBy: {
         userId: data.id,

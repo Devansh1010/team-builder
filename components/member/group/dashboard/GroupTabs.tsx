@@ -1,6 +1,8 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { IGroup } from '@/models/user_models/group.model'
 import TabOverview from './TabOverview'
+import TaskList from '../../task/_components/taskList/TaskTable'
+import CreateTask from '../../task/_components/CreateTask'
 
 const GroupTabs = ({ group }: { group: IGroup }) => {
   return (
@@ -24,8 +26,8 @@ const GroupTabs = ({ group }: { group: IGroup }) => {
         {/* Tab 2 */}
         <TabsContent value="tasks" className="mt-6">
           <div className="rounded-xl border border-gray-200 p-4 dark:border-gray-800">
-            <h3 className="text-lg font-semibold mb-2">Tasks</h3>
-            <p className="text-sm text-muted-foreground">Tasks / boards / workflow will go here.</p>
+            <CreateTask group={group} />
+            <TaskList group={group} />
           </div>
         </TabsContent>
 

@@ -1,16 +1,5 @@
 import mongoose, { Schema, Document, Types } from 'mongoose'
-
-export enum TaskStatus {
-  TODO = 'todo',
-  IN_PROGRESS = 'in_progress',
-  DONE = 'done',
-}
-
-export enum TaskPriority {
-  LOW = 'low',
-  MEDIUM = 'medium',
-  HIGH = 'high',
-}
+import { TaskStatus, TaskPriority } from '@/lib/constraints/task'
 
 export interface IAccessTo {
   userId: Types.ObjectId
