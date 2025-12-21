@@ -1,6 +1,6 @@
 'use client'
 
-import { IAccessTo, TaskPriority, TaskStatus } from '@/models/user_models/task.model'
+import { TaskPriority, TaskStatus } from '@/lib/constraints/task'
 import { ColumnDef } from '@tanstack/react-table'
 
 // This type is used to define the shape of our data.
