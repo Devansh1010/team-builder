@@ -72,5 +72,7 @@ export const createGroup = async ({
 }) => {
   const res = await axios.post(`/api/member/group/createGroup`, { name, desc, techStack })
 
-  return res.data.data
+  // ! Check data and update all the pages query accordingly
+  console.log(res.data)
+  return res.data
 }

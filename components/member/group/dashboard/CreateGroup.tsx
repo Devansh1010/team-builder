@@ -26,11 +26,14 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { useState } from 'react'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createGroup } from '@/lib/api/group.api'
+import { toast } from 'sonner'
 
 const CreateGroup = () => {
   const [open, setOpen] = useState<boolean>(false)
+
+  const queryClient = useQueryClient()
 
   const {
     mutate: createGroupMutate,
@@ -38,8 +41,15 @@ const CreateGroup = () => {
     isPending,
   } = useMutation({
     mutationFn: createGroup,
+
     onSuccess: () => {
       setOpen(false)
+      toast.success('Group Created Successfully')
+      queryClient.invalidateQueries({ queryKey: ['activeGroups'] })
+    },
+
+    onError: () => {
+      toast.error(createdGroup.message)
     },
   })
 

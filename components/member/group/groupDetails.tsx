@@ -13,6 +13,7 @@ import GroupHeader from './dashboard/_components/GroupHeader'
 import GroupTabs from './dashboard/GroupTabs'
 
 const GroupPage = () => {
+  
   const { data: activeGroup = [], isLoading } = useQuery({
     queryKey: ['activeGroups'],
     queryFn: fetchActiveGroups,

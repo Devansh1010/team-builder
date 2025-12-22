@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { useState } from 'react'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import {
   Dialog,
@@ -77,11 +77,14 @@ const CreateTask = ({ group }: { group: IGroup }) => {
     },
   })
 
+  const queryClient = useQueryClient()
+
   const { mutate, isPending } = useMutation({
     mutationFn: createTask,
     onSuccess: () => {
       form.reset()
       setOpen(false)
+      queryClient.invalidateQueries({ queryKey: ['activeGroups'] })
     },
   })
 
@@ -231,6 +234,7 @@ const CreateTask = ({ group }: { group: IGroup }) => {
             </Button>
           </form>
         </Form>
+        
       </DialogContent>
     </Dialog>
   )
