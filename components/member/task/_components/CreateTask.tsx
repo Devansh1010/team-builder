@@ -84,7 +84,7 @@ const CreateTask = ({ group }: { group: IGroup }) => {
     onSuccess: () => {
       form.reset()
       setOpen(false)
-      queryClient.invalidateQueries({ queryKey: ['activeGroups'] })
+      queryClient.invalidateQueries({ queryKey: ['groupTasks'] })
     },
   })
 
@@ -234,7 +234,7 @@ const CreateTask = ({ group }: { group: IGroup }) => {
             </Button>
           </form>
         </Form>
-        
+
       </DialogContent>
     </Dialog>
   )
