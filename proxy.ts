@@ -4,51 +4,53 @@ import type { NextRequest } from 'next/server'
 import { cookies } from 'next/headers'
 
 export async function proxy(req: NextRequest) {
-  const session = await auth() // ADMIN LOGIN
-  const token = (await cookies()).get('authToken')?.value
-  console.log(token) // MEMBER LOGIN
+  const session = await auth() // Admin Session
+  const cookieStore = await cookies()
+  const token = cookieStore.get('authToken')?.value // Member Token
 
   const { pathname } = req.nextUrl
 
-  // ADMIN ROUTES
-  const isAdminRoute = pathname.startsWith('/admin')
-  const isAdminAuthPage = pathname === '/auth/sign-in' || pathname === '/auth/sign-up'
+  // 1. Handle the Root Path (/)
+  if (pathname === '/') {
+    if (session) return NextResponse.redirect(new URL('/admin/dashboard', req.url))
+    if (token) return NextResponse.redirect(new URL('/member/dashboard', req.url))
+    // Default fallback if no one is logged in
+    return NextResponse.redirect(new URL('/member/auth/sign-in', req.url))
+  }
 
-  // MEMBER ROUTES
+  // 2. Define Route Categories
+  const isAdminRoute = pathname.startsWith('/admin')
+  const isAdminAuthPage = pathname.startsWith('/auth/sign-in') || pathname.startsWith('/auth/sign-up')
+  
   const isMemberRoute = pathname.startsWith('/member')
   const isMemberAuthPage = pathname.startsWith('/member/auth')
 
-  // ADMIN LOGIC
-
-  if (isAdminRoute) {
-    // 1. If admin is NOT logged in → allow only admin login page
-    if (!session && !isAdminAuthPage) {
-      return NextResponse.redirect(new URL('/auth/sign-in', req.url))
-    }
-
-    // 2. If admin IS logged in → block login page
-    if (session && isAdminAuthPage) {
-      return NextResponse.redirect(new URL('/admin/dashboard', req.url))
-    }
+  // 3. Admin Access Control
+  if (isAdminRoute && !session) {
+    return NextResponse.redirect(new URL('/auth/sign-in', req.url))
+  }
+  if (isAdminAuthPage && session) {
+    return NextResponse.redirect(new URL('/admin/dashboard', req.url))
   }
 
-  // MEMBER LOGIC
-
-  if (isMemberRoute) {
-    // 1. If member is NOT logged in → allow only member auth pages
-    if (!token && !isMemberAuthPage) {
-      return NextResponse.redirect(new URL('/member/auth/sign-in', req.url))
-    }
-
-    // 2. If member IS logged in → block member login page
-    if (token && isMemberAuthPage) {
-      return NextResponse.redirect(new URL('/member/dashboard', req.url))
-    }
+  // 4. Member Access Control
+  if (isMemberRoute && !isMemberAuthPage && !token) {
+    return NextResponse.redirect(new URL('/member/auth/sign-in', req.url))
+  }
+  if (isMemberAuthPage && token) {
+    return NextResponse.redirect(new URL('/member/dashboard', req.url))
   }
 
   return NextResponse.next()
 }
 
 export const config = {
-  matcher: ['/auth/sign-up', '/profile', '/admin/:path*', '/', '/member/:path*'],
+  // Use a more inclusive matcher to catch all protected paths
+  matcher: [
+    '/',
+    '/admin/:path*',
+    '/member/:path*',
+    '/auth/:path*',
+    '/profile'
+  ],
 }
