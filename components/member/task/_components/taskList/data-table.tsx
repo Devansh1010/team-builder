@@ -3,7 +3,9 @@ import * as React from "react"
 import {
   ColumnDef,
   SortingState,
-   getSortedRowModel,
+  getSortedRowModel,
+  ColumnFiltersState,
+  getFilteredRowModel,
   flexRender,
   getCoreRowModel,
   getPaginationRowModel,
@@ -19,6 +21,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 
+import { Input } from "@/components/ui/input"
 
 import { Button } from "@/components/ui/button"
 import { DataTablePagination } from './data-table-page-size'
@@ -34,6 +37,9 @@ interface DataTableProps<TData, TValue> {
 export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData, TValue>) {
 
   const [sorting, setSorting] = React.useState<SortingState>([])
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    []
+  )
 
   const table = useReactTable({
     data,
@@ -42,40 +48,61 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
     getPaginationRowModel: getPaginationRowModel(),
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
+    onColumnFiltersChange: setColumnFilters,
+    getFilteredRowModel: getFilteredRowModel(),
     state: {
       sorting,
+      columnFilters,
     },
   })
 
   return (
-    <div>
-
-      <div className='mb-2'>
+    <div className="w-full space-y-4">
+      {/* Toolbar: Search and View Options */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex flex-1 items-center space-x-2">
+          <Input
+            placeholder="Search Tasks..."
+            value={(table.getColumn("title")?.getFilterValue() as string) ?? ""}
+            onChange={(event) =>
+              table.getColumn("title")?.setFilterValue(event.target.value)
+            }
+            className="h-9 w-[150px] lg:w-[250px]"
+          />
+          {/* If you have a Reset/Clear button, it would go here */}
+        </div>
         <DataTableViewOptions table={table} />
       </div>
-      <div className="overflow-hidden rounded-md border">
+
+      {/* Table Container */}
+      <div className="rounded-md border bg-card">
         <Table>
-          <TableHeader>
+          <TableHeader className="bg-muted/50">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(header.column.columnDef.header, header.getContext())}
-                    </TableHead>
-                  )
-                })}
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id} className="font-semibold">
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
+                  </TableHead>
+                ))}
               </TableRow>
             ))}
           </TableHeader>
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow key={row.id} data-state={row.getIsSelected() && 'selected'}>
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                  className="hover:bg-muted/30 transition-colors"
+                >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell key={cell.id} className="py-3">
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
@@ -83,8 +110,11 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
-                  No results.
+                <TableCell
+                  colSpan={columns.length}
+                  className="h-24 text-center text-muted-foreground"
+                >
+                  No results found.
                 </TableCell>
               </TableRow>
             )}
@@ -92,10 +122,10 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
         </Table>
       </div>
 
-      {/* Enable Pagination and Row Per page */}
-      {/* <div className="flex items-center justify-end space-x-2 py-4">
+      {/* Pagination Section */}
+      <div className="flex items-center justify-end py-2">
         <DataTablePagination table={table} />
-      </div> */}
+      </div>
     </div>
   )
 }
