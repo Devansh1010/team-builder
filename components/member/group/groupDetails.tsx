@@ -59,7 +59,7 @@ const GroupPage = () => {
   return (
     <div className="mx-auto my-6 max-w-340">
       {/* Main Card */}
-      <div className="flex-1 rounded-2xl bg-white dark:bg-[#18181B] border border-gray-200 dark:border-gray-800 px-8 py-6 shadow-sm min-h-155">
+      <div className="flex-1 rounded-2xl p-4 bg-white border border-gray-200 shadow-sm min-h-155 dark:bg-[#161616] dark:border-white/5 dark:shadow-none transition-colors">
         {/* Content */}
         <div className="flex flex-col gap-6">
           <GroupTabs group={group} />
