@@ -12,8 +12,6 @@ const Members = () => {
 
         select: (groups) => ({
             id: groups[0]?._id,
-            requestedUsers: groups[0]?.requestedUser || [],
-            invitedUsers: groups[0]?.invitedUsers || [],
             members: groups[0]?.members || [],
         }),
 

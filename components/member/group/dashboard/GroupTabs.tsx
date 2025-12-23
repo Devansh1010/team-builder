@@ -9,7 +9,7 @@ const GroupTabs = ({ group }: { group: IGroup }) => {
     <div>
       <Tabs defaultValue="tasks" className="w-full">
         {/* Tab Headers */}
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-4 bg-[#111111]">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="tasks">Tasks</TabsTrigger>
           <TabsTrigger value="Discussion">Discussion</TabsTrigger>
@@ -18,7 +18,7 @@ const GroupTabs = ({ group }: { group: IGroup }) => {
 
         {/* Tab 1 */}
         <TabsContent value="overview" className="mt-6">
-          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+          <div className="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-800 dark:bg-[#111111]">
             <TabOverview group={group} />
           </div>
         </TabsContent>

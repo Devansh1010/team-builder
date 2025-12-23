@@ -15,9 +15,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { toast } from 'sonner'
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { updateTask } from '@/lib/api/task.api';
 
 // This type is used to define the shape of our data.
 // You can use a Zod schema here if you want.
@@ -54,6 +51,12 @@ export const columns: ColumnDef<Task>[] = [
       const status = row.getValue("status") as string;
       const meta = table.options.meta as any;
 
+      const statusStyles: Record<string, string> = {
+        todo: "bg-slate-500/10 text-slate-500 border-slate-500/20",
+        in_progress: "bg-amber-500/10 text-amber-500 border-amber-500/20",
+        done: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
+      };
+
       return (
         <Select
           defaultValue={status}
@@ -65,13 +68,15 @@ export const columns: ColumnDef<Task>[] = [
             });
           }}
         >
-          <SelectTrigger className="w-[110px] h-8">
+          <SelectTrigger
+            className={`h-7 w-[130px] px-3 text-[11px] font-bold uppercase tracking-wider rounded-full border ${statusStyles[status] || statusStyles.todo} transition-all hover:opacity-80`}
+          >
             <SelectValue />
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="todo">Todo</SelectItem>
-            <SelectItem value="in_progress">In Progress</SelectItem>
-            <SelectItem value="done">Done</SelectItem>
+          <SelectContent className="bg-[#161616] border-white/10 text-white">
+            <SelectItem value="todo" className="focus:bg-slate-500/20 focus:text-slate-400">Todo</SelectItem>
+            <SelectItem value="in_progress" className="focus:bg-amber-500/20 focus:text-amber-400">In Progress</SelectItem>
+            <SelectItem value="done" className="focus:bg-emerald-500/20 focus:text-emerald-400">Done</SelectItem>
           </SelectContent>
         </Select>
       );
@@ -83,6 +88,14 @@ export const columns: ColumnDef<Task>[] = [
     cell: ({ row, table }) => {
       const priority = row.getValue("priority") as string
       const meta = table.options.meta as any;
+
+      // Color mapping for Priority Levels
+      const priorityStyles: Record<string, string> = {
+        low: "bg-blue-500/10 text-blue-500 border-blue-500/20",
+        medium: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
+        high: "bg-rose-500/10 text-rose-500 border-rose-500/20",
+      };
+
       return (
         <Select
           defaultValue={priority}
@@ -94,13 +107,15 @@ export const columns: ColumnDef<Task>[] = [
             });
           }}
         >
-          <SelectTrigger className="w-[110px] h-8">
+          <SelectTrigger
+            className={`h-7 w-[100px] px-3 text-[10px] font-bold uppercase tracking-widest rounded-full border ${priorityStyles[priority] || priorityStyles.low} transition-all hover:brightness-110`}
+          >
             <SelectValue />
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="low">Low</SelectItem>
-            <SelectItem value="medium">Medium</SelectItem>
-            <SelectItem value="high">High</SelectItem>
+          <SelectContent className="bg-[#161616] border-white/10 text-white">
+            <SelectItem value="low" className="focus:bg-blue-500/20 focus:text-blue-400">Low</SelectItem>
+            <SelectItem value="medium" className="focus:bg-yellow-500/20 focus:text-yellow-400">Medium</SelectItem>
+            <SelectItem value="high" className="focus:bg-rose-500/20 focus:text-rose-400">High</SelectItem>
           </SelectContent>
         </Select>
       )
