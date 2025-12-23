@@ -6,7 +6,7 @@ import { Loader2 } from 'lucide-react'
 //tanstack Quert
 import { useQuery } from '@tanstack/react-query'
 import { fetchActiveGroups } from '@/lib/api/group.api'
-import CreateGroup from '@/components/member/group/dashboard/CreateGroup'
+import CreateGroup from '@/components/member/group/dashboard/_components/CreateGroup'
 
 import Link from 'next/link'
 import GroupHeader from './dashboard/_components/GroupHeader'
