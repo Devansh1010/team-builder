@@ -24,13 +24,11 @@ export async function PATCH(req: NextRequest) {
 
     const { searchParams } = new URL(req.url)
     const taskId = searchParams.get('taskId')
-    const groupId = searchParams.get('groupId')
+    // const groupId = searchParams.get('groupId')
 
     if (
       !taskId ||
-      !groupId ||
-      !mongoose.Types.ObjectId.isValid(taskId) ||
-      !mongoose.Types.ObjectId.isValid(groupId)
+      !mongoose.Types.ObjectId.isValid(taskId)
     ) {
       return createResponse(
         { success: false, message: 'Invalid taskId or groupId' },
@@ -47,18 +45,18 @@ export async function PATCH(req: NextRequest) {
       )
     }
 
-    const isMember = await Group.exists({
-      _id: groupId,
-      'members.userId': user.id,
-    })
+    // const isMember = await Group.exists({
+    //   _id: groupId,
+    //   'members.userId': user.id,
+    // })
 
-    if (!isMember) {
-      return createResponse({ success: false, message: 'Not a group member' }, StatusCode.FORBIDDEN)
-    }
+    // if (!isMember) {
+    //   return createResponse({ success: false, message: 'Not a group member' }, StatusCode.FORBIDDEN)
+    // }
 
     const task = await Task.findOne({
       _id: taskId,
-      groupId,
+      // groupId,
     })
 
     if (!task) {
@@ -83,8 +81,9 @@ export async function PATCH(req: NextRequest) {
       }
 
       case 'UPDATE_STATUS': {
-        const { status } = payload || {}
+        const { UPDATE_STATUS } = payload || {}
 
+        const status = UPDATE_STATUS.status
         if (!status) return badRequest('Status required')
 
         updateQuery.$set = { status }
@@ -92,8 +91,8 @@ export async function PATCH(req: NextRequest) {
       }
 
       case 'UPDATE_PRIORITY': {
-        const { priority } = payload || {}
-
+        const { UPDATE_PRIORITY } = payload || {}
+        const priority = UPDATE_PRIORITY.priority
         if (!priority) return badRequest('Priority required')
 
         updateQuery.$set = { priority }
@@ -101,8 +100,8 @@ export async function PATCH(req: NextRequest) {
       }
 
       case 'UPDATE_DUE_DATE': {
-        const { dueDate } = payload || {}
-
+        const { UPDATE_DUE_DATE } = payload || {}
+        const dueDate = UPDATE_DUE_DATE.dueDate
         if (!dueDate) return badRequest('Due date required')
         if (new Date(dueDate) <= new Date()) {
           return badRequest('Due date must be in future')
@@ -113,21 +112,21 @@ export async function PATCH(req: NextRequest) {
       }
 
       case 'ADD_ASSIGNEE': {
-        const { userId } = payload || {}
-
-        if (!userId) return badRequest('userId required')
+        const { ADD_ASSIGNEE } = payload || {}
+        const assignee = ADD_ASSIGNEE.assignee
+        if (!assignee) return badRequest('userId required')
 
         // validate user is in group
-        const isValidUser = await Group.exists({
-          _id: groupId,
-          'accessTo.userId': userId,
-        })
+        // const isValidUser = await Group.exists({
+        //   _id: groupId,
+        //   'accessTo.userId': userId,
+        // })
 
-        if (!isValidUser) return badRequest('Invalid assignee')
+        // if (!isValidUser) return badRequest('Invalid assignee')
 
         updateQuery.$addToSet = {
           assignedTo: {
-            userId,
+            assignee,
             assignedAt: new Date(),
           },
         }
@@ -135,12 +134,12 @@ export async function PATCH(req: NextRequest) {
       }
 
       case 'REMOVE_ASSIGNEE': {
-        const { userId } = payload || {}
-
-        if (!userId) return badRequest('userId required')
+        const { REMOVE_ASSIGNEE } = payload || {}
+        const assignee = REMOVE_ASSIGNEE.assignee
+        if (!assignee) return badRequest('userId required')
 
         updateQuery.$pull = {
-          assignedTo: { userId },
+          assignedTo: { assignee },
         }
         break
       }

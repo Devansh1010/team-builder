@@ -1,9 +1,10 @@
 import { columns } from './columns'
 import { DataTable } from './data-table'
-import { useQuery } from '@tanstack/react-query'
-import { fetchAllGroupTasks } from '@/lib/api/task.api'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { fetchAllGroupTasks, updateTask } from '@/lib/api/task.api'
 import { IGroup } from '@/models/user_models/group.model'
 import { Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 
 export default function TaskList({ group }: { group: IGroup }) {
   if (!group._id) return null
@@ -18,7 +19,19 @@ export default function TaskList({ group }: { group: IGroup }) {
     refetchOnWindowFocus: false,
   })
 
- 
+
+  const queryClient = useQueryClient();
+
+  const { mutate: updateTaskMutation } = useMutation({
+    mutationFn: ({ id, operation, value }: { id: string; operation: string; value: any }) =>
+      updateTask(id, operation, value),
+    onSuccess: () => {
+      toast.success(`Task updated successfully`);
+      queryClient.invalidateQueries({ queryKey: ['groupTasks', group._id] });
+    },
+    onError: () => toast.error('Failed to update task'),
+  });
+
   if (isLoading) {
     return (
       <div className="flex h-[300px] items-center justify-center">
@@ -40,7 +53,14 @@ export default function TaskList({ group }: { group: IGroup }) {
 
   return (
     <div className="container mx-auto py-10">
-      <DataTable columns={columns} data={groupTasks} />
+      <DataTable
+        columns={columns}
+        data={groupTasks}
+        meta={{
+          groupId: group._id,
+          updateTask: updateTaskMutation
+        }}
+      />
     </div>
   )
 }

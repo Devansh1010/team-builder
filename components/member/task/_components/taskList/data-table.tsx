@@ -29,12 +29,11 @@ import { DataTableViewOptions } from './data-table-column-toggle'
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
-  data: TData[]
+  data: TData[] 
+  meta: any
 }
 
-
-
-export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData, TValue>) {
+export function DataTable<TData, TValue>({ columns, data, meta }: DataTableProps<TData, TValue>) {
 
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -44,6 +43,7 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
   const table = useReactTable({
     data,
     columns,
+    meta,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     onSortingChange: setSorting,
@@ -56,6 +56,8 @@ export function DataTable<TData, TValue>({ columns, data }: DataTableProps<TData
     },
   })
 
+  console.log(table.options.meta)
+  
   return (
     <div className="w-full space-y-4">
       {/* Toolbar: Search and View Options */}

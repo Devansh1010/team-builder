@@ -36,3 +36,22 @@ export const createTask = async ({
 
   return res.data
 }
+
+export const updateTask = async (_id: string, field: string, value: string) => {
+
+  try {
+    const response = await axios.patch(`/api/member/task/updateTask?taskId=${_id}`, {
+      operation: `${field.toUpperCase()}`,
+      payload: { [field]: value }
+    });
+
+    return response.data
+
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      console.error("Axios Error:", error.response?.data || error.message);
+    } else {
+      console.error("Unexpected Error:", error);
+    }
+  }
+}
