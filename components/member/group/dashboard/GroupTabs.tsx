@@ -1,6 +1,6 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { IGroup } from '@/models/user_models/group.model'
-import TabOverview from './TabOverview'
+import TabOverview from './overview/TabOverview'
 import TaskList from '../../task/_components/taskList/TaskTable'
 import CreateTask from '../../task/_components/CreateTask'
 
