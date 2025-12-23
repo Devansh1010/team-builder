@@ -28,7 +28,7 @@ export function UserNavigationMenu() {
                   href="/member/dashboard"
                   className="group relative text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-sky-600 dark:hover:text-white transition-all"
                 >
-                  <span className='text-[18px]'>Group</span>
+                  <span className='text-[17px]'>Group</span>
                 </Link>
               </NavigationMenuLink>
             </NavigationMenuItem>
@@ -40,7 +40,7 @@ export function UserNavigationMenu() {
                   href="/member/dashboard/join"
                   className="group relative text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-sky-600 dark:hover:text-white transition-all"
                 >
-                  <span className='text-[18px]'>Join</span>
+                  <span className='text-[17px]'>Join</span>
 
                 </Link>
               </NavigationMenuLink>
@@ -53,7 +53,7 @@ export function UserNavigationMenu() {
                   href="/member/dashboard/profile"
                   className="group relative text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-sky-600 dark:hover:text-white transition-all"
                 >
-                  <span className='text-[18px]'>Profile</span>
+                  <span className='text-[17px]'>Profile</span>
                 </Link>
               </NavigationMenuLink>
             </NavigationMenuItem>

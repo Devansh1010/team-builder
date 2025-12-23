@@ -58,7 +58,8 @@ export default function TaskList({ group }: { group: IGroup }) {
         data={groupTasks}
         meta={{
           groupId: group._id,
-          updateTask: updateTaskMutation
+          updateTask: updateTaskMutation,
+          group: group
         }}
       />
     </div>

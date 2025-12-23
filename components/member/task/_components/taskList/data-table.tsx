@@ -26,10 +26,11 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { DataTablePagination } from './data-table-page-size'
 import { DataTableViewOptions } from './data-table-column-toggle'
+import CreateTask from "../CreateTask"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
-  data: TData[] 
+  data: TData[]
   meta: any
 }
 
@@ -57,11 +58,11 @@ export function DataTable<TData, TValue>({ columns, data, meta }: DataTableProps
   })
 
   console.log(table.options.meta)
-  
+
   return (
     <div className="w-full space-y-4">
       {/* Toolbar: Search and View Options */}
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex items-center justify-between gap-4 py-4">
         <div className="flex flex-1 items-center space-x-2">
           <Input
             placeholder="Search Tasks..."
@@ -69,15 +70,18 @@ export function DataTable<TData, TValue>({ columns, data, meta }: DataTableProps
             onChange={(event) =>
               table.getColumn("title")?.setFilterValue(event.target.value)
             }
-            className="h-9 w-[150px] lg:w-[250px]"
+            className="h-9 w-[150px] bg-[#161616] border-white/10 lg:w-[250px]"
           />
-          {/* If you have a Reset/Clear button, it would go here */}
         </div>
-        <DataTableViewOptions table={table} />
+
+        <div className="flex items-center gap-2">
+          <CreateTask group={(table.options.meta as any)?.group} />
+          <DataTableViewOptions table={table} />
+        </div>
       </div>
 
       {/* Table Container */}
-      <div className="rounded-md border bg-card">
+      <div className="rounded-md border border-grey-800 bg-[#111111]">
         <Table>
           <TableHeader className="bg-muted/50">
             {table.getHeaderGroups().map((headerGroup) => (

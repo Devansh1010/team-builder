@@ -46,7 +46,9 @@ export const columns: ColumnDef<Task>[] = [
   },
   {
     accessorKey: 'status',
-    header: "Status",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Status" />
+    ),
     cell: ({ row, table }) => {
       const status = row.getValue("status") as string;
       const meta = table.options.meta as any;
@@ -84,7 +86,9 @@ export const columns: ColumnDef<Task>[] = [
   },
   {
     accessorKey: 'priority',
-    header: "Priority",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Priority" />
+    ),
     cell: ({ row, table }) => {
       const priority = row.getValue("priority") as string
       const meta = table.options.meta as any;
@@ -127,10 +131,79 @@ export const columns: ColumnDef<Task>[] = [
   },
   {
     accessorKey: 'dueDate',
-    header: 'DueDate',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Due Date" />
+    ),
+    cell: ({ row }) => {
+      const dateValue = row.getValue("dueDate") as string;
+      if (!dateValue) return <span className="text-muted-foreground">-</span>;
+
+      const dueDate = new Date(dateValue);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      // Calculate difference in days
+      const diffTime = dueDate.getTime() - today.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      // Styling Logic
+      let style = "text-gray-500 dark:text-gray-400"; // Default
+      let label = "";
+
+      if (diffDays < 0) {
+        style = "text-rose-500 font-bold animate-pulse"; // Overdue
+        label = "Overdue";
+      } else if (diffDays === 0) {
+        style = "text-rose-500 font-bold"; // Today
+        label = "Today";
+      } else if (diffDays <= 3) {
+        style = "text-amber-500 font-semibold"; // Due soon (3 days)
+        label = "Soon";
+      }
+
+      const formattedDate = new Intl.DateTimeFormat("en-US", {
+        month: "short",
+        day: "numeric",
+      }).format(dueDate);
+
+      return (
+        <div className="flex flex-col items-start gap-0.5">
+          <span className={`text-sm ${style}`}>
+            {formattedDate}
+          </span>
+          {label && (
+            <span className={`text-[9px] uppercase tracking-tighter ${style}`}>
+              {label}
+            </span>
+          )}
+        </div>
+      );
+    },
   },
   {
     accessorKey: 'createdAt',
-    header: 'CreatedAt',
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Created" />
+    ),
+    cell: ({ row }) => {
+      const date = row.getValue("createdAt") as string;
+
+      if (!date) return <span className="text-muted-foreground">-</span>;
+
+      // Formatting to "Dec 23, 2025"
+      const formattedDate = new Intl.DateTimeFormat("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      }).format(new Date(date));
+
+      return (
+        <div className="flex flex-col">
+          <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
+            {formattedDate}
+          </span>
+        </div>
+      );
+    },
   },
 ]

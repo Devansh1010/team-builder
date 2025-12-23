@@ -26,7 +26,7 @@ const GroupTabs = ({ group }: { group: IGroup }) => {
         {/* Tab 2 */}
         <TabsContent value="tasks" className="mt-6">
           <div className="rounded-xl border border-gray-200 p-4 dark:border-gray-800">
-            <CreateTask group={group} />
+
             <TaskList group={group} />
           </div>
         </TabsContent>

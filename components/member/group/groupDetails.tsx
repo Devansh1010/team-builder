@@ -60,12 +60,6 @@ const GroupPage = () => {
     <div className="mx-auto my-6 max-w-340">
       {/* Main Card */}
       <div className="flex-1 rounded-2xl bg-white dark:bg-[#18181B] border border-gray-200 dark:border-gray-800 px-8 py-6 shadow-sm min-h-155">
-        {/* Header */}
-        <GroupHeader group={group} />
-
-        {/* Soft Divider */}
-        <div className="my-4 h-px bg-linear-to-r from-transparent via-gray-300 dark:via-gray-300 to-transparent" />
-
         {/* Content */}
         <div className="flex flex-col gap-6">
           <GroupTabs group={group} />
