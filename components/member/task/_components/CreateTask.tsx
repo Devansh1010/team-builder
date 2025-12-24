@@ -41,6 +41,7 @@ import { createTask } from '@/lib/api/task.api'
 import { createTaskFormSchema } from '@/lib/schemas/task/createTask'
 import { TaskPriority, TaskStatus } from '@/lib/constraints/task'
 import { IGroup } from '@/models/user_models/group.model'
+import { toast } from 'sonner'
 
 function formatDate(date: Date | undefined) {
   if (!date) {
@@ -81,10 +82,20 @@ const CreateTask = ({ group }: { group: IGroup }) => {
 
   const { mutate, isPending } = useMutation({
     mutationFn: createTask,
+    
     onSuccess: () => {
       form.reset()
       setOpen(false)
-      queryClient.invalidateQueries({ queryKey: ['groupTasks'] })
+      queryClient.invalidateQueries({ queryKey: ['groupTasks', group._id!.toString()] })
+      toast.success('Task Created Successfully')
+    },
+
+    onError: (error: any) => {
+
+      const errorMessage = error.response?.data?.message || error.message || "Failed to create task";
+
+      toast.error(errorMessage);
+
     },
   })
 

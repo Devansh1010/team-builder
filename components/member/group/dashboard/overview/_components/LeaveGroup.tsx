@@ -53,7 +53,8 @@ const LeaveGroupDialog = () => {
             toast.success('Group Left Successfully')
             queryClient.invalidateQueries({ queryKey: ['activeGroups'] })
             setOpen(false)
-            router.push('/member/dashboard')
+            router.refresh();
+            window.location.reload();
         },
         onError: () => {
             toast.error('Failed to Leave Group')
@@ -106,9 +107,9 @@ const LeaveGroupDialog = () => {
                                     <FormItem>
                                         <FormLabel>Reason to Leave the Group</FormLabel>
                                         <FormControl>
-                                            <Input 
-                                                {...field} 
-                                                placeholder="Why are you leaving?" 
+                                            <Input
+                                                {...field}
+                                                placeholder="Why are you leaving?"
                                                 disabled={leaveGroup.isPending}
                                             />
                                         </FormControl>
@@ -123,9 +124,9 @@ const LeaveGroupDialog = () => {
                                         Cancel
                                     </Button>
                                 </DialogClose>
-                                <Button 
-                                    type="submit" 
-                                    variant="destructive" 
+                                <Button
+                                    type="submit"
+                                    variant="destructive"
                                     disabled={leaveGroup.isPending}
                                 >
                                     {leaveGroup.isPending ? (
