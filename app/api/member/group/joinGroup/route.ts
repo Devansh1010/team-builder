@@ -14,15 +14,15 @@ export async function POST(req: NextRequest) {
       return auth.response
     }
 
-    const data = auth.user
+    const user = auth.user
 
-    if (!data) {
+    if (!user) {
       return createResponse({ success: false, message: 'Unauthorized' }, StatusCode.UNAUTHORIZED)
     }
 
     await dbConnect()
 
-    const userGroups = await User.findById(data.id).select('groups')
+    const userGroups = await User.findById(user.id).select('groups')
 
     if (userGroups?.groups?.length > 0) {
       return createResponse(
@@ -34,19 +34,22 @@ export async function POST(req: NextRequest) {
     const { searchParams } = new URL(req.url)
     const groupId = searchParams.get('groupId')
 
-    const { msg } = await req.json()
+    const body = await req.json();
+    const { message } = body;
+    const msg = message;
+
 
     if (!groupId) {
       return createResponse({ success: false, message: 'Invalid GroupId' }, StatusCode.BAD_REQUEST)
     }
 
     const groupRequest = await Group.findOne(
-      { _id: groupId, 'requestedUser.userId': data.id },
+      { _id: groupId, 'requestedUser.userId': user.id },
       { 'requestedUser.$': 1 }
     )
 
     const userRequest = await User.findOne(
-      { _id: data.id, 'requestedGroups.groupId': groupId },
+      { _id: user.id, 'requestedGroups.groupId': groupId },
       { 'requestedGroups.$': 1 }
     )
 
@@ -65,8 +68,8 @@ export async function POST(req: NextRequest) {
         {
           $addToSet: {
             requestedUser: {
-              userId: data.id,
-              username: data.username,
+              userId: user.id,
+              username: user.username,
               msg,
             },
           },
@@ -75,7 +78,7 @@ export async function POST(req: NextRequest) {
       )
 
       await User.findByIdAndUpdate(
-        data.id,
+        user.id,
         {
           $addToSet: {
             requestedGroups: {
@@ -92,8 +95,8 @@ export async function POST(req: NextRequest) {
       //     {
       //         $push: {
       //             logs: {
-      //                 userId: data.id,
-      //                 username: data.username,
+      //                 userId: user.id,
+      //                 username: user.username,
       //                 msg: "Requested to join group"
       //             }
       //         }
@@ -103,7 +106,7 @@ export async function POST(req: NextRequest) {
       // const group = await Group.findById(groupId)
 
       // await UserLog.findOneAndUpdate(
-      //     { userId: data.id },
+      //     { userId: user.id },
       //     {
       //         $push: {
       //             logs: {

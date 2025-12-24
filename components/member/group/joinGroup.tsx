@@ -55,18 +55,21 @@ const JoinGroup = () => {
 
   const queryClient = useQueryClient()
 
+  // Update your mutation definition for better clarity
   const sendRequestMutation = useMutation({
     mutationFn: sendJoinRequest,
     onSuccess: () => {
-      toast.success('Request sent successfully')
-      queryClient.invalidateQueries({ queryKey: ['groups'] })
-      setOpenGroupId(null)
-      form.reset()
+      toast.success('Request sent successfully');
+      queryClient.invalidateQueries({ queryKey: ['groups'] });
+      setOpenGroupId(null); // Closes the dialog
+      form.reset({ message: '' }); // Clears the form input
     },
-    onError: () => {
-      toast.error('Error while sending request')
+    onError: (error: any) => {
+     
+      const message = error.response?.data?.message || 'Error while sending request';
+      toast.error(message);
     },
-  })
+  });
 
   const withdrawMutation = useMutation({
     mutationFn: widrawRequest,
