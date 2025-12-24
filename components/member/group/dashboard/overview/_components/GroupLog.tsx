@@ -16,54 +16,69 @@ const GroupLog = ({ group }: { group: IGroup }) => {
     })
 
     return (
-        <div className="w-full mx-auto p-4 border rounded-xl bg-background shadow-sm">
+        <div className="w-full space-y-6 animate-in fade-in duration-500">
+            {/* Header for the section */}
+            <div className="flex items-center justify-between px-1">
+                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+                    Activity History
+                </h3>
+            </div>
+
             {isLoading ? (
-                <div className="flex flex-col items-center justify-center py-12 space-y-4">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                    <p className="text-sm text-muted-foreground italic">Fetching logs...</p>
+                <div className="flex flex-col items-center justify-center py-20 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50/30">
+                    <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+                    <p className="mt-4 text-xs font-bold text-slate-500 uppercase tracking-widest">Synchronizing Logs...</p>
                 </div>
             ) : !groupLog?.logs || groupLog.logs.length === 0 ? (
-                /* Empty or Undefined State */
-                <div className="flex flex-col items-center justify-center py-12 px-4 text-center border-2 border-dashed rounded-lg">
-                    <p className="text-sm font-medium text-muted-foreground">No logs found</p>
-                    <p className="text-xs text-muted-foreground/70">Activities will appear here once they occur.</p>
+                <div className="flex flex-col items-center justify-center py-16 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-xl">
+                    <p className="text-sm font-bold text-slate-900 dark:text-slate-100 uppercase tracking-tighter">No events recorded</p>
+                    <p className="text-xs text-slate-500 mt-1">Activity logs will appear here in chronological order.</p>
                 </div>
             ) : (
-                /* Active State */
-                <div className="space-y-4">
+                <div className="relative space-y-0 before:absolute before:inset-y-0 before:left-[17px] before:w-px before:bg-slate-200 dark:before:bg-slate-800">
                     {groupLog.logs.map((log: ILogs, index: number) => (
                         <div
                             key={index}
-                            className="group relative flex flex-col gap-1 p-4 rounded-xl border bg-card transition-all hover:shadow-md hover:border-primary/20"
+                            className="group relative flex items-start gap-6 pb-8 last:pb-0"
                         >
-                            {/* Top Row: User and Badges */}
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                    <div className="h-2 w-2 rounded-full bg-primary/40 group-hover:bg-primary transition-colors" />
-                                    <span className="text-sm font-bold tracking-tight text-foreground">
-                                        {log.username}
+                            {/* Timeline Dot */}
+                            <div className="relative z-10 mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full border-2 border-white bg-slate-900 ring-4 ring-white dark:border-slate-950 dark:bg-slate-100 dark:ring-slate-950 transition-transform group-hover:scale-125" />
+
+                            {/* Log Content */}
+                            <div className="flex-1 min-w-0">
+                                <div className="flex flex-wrap items-center justify-between gap-2 mb-1">
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                                            {log.username}
+                                        </span>
+
+                                        {/* Badges - Simple & Professional */}
+                                        <div className="flex gap-1.5">
+                                            {log.isRemoved && (
+                                                <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-tighter bg-red-50 text-red-600 border border-red-100 dark:bg-red-950/30 dark:text-red-400 dark:border-red-900/50">
+                                                    Removed
+                                                </span>
+                                            )}
+                                            {log.isLeaved && (
+                                                <span className="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-tighter bg-amber-50 text-amber-600 border border-amber-100 dark:bg-amber-950/30 dark:text-amber-400 dark:border-amber-900/50">
+                                                    Left Group
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {/* Timestamp placeholder if you have it in your log object */}
+                                    <span className="text-[10px] font-medium text-slate-400 uppercase">
+                                        {/* log.createdAt ? format(new Date(log.createdAt), 'MMM d, h:mm a') : 'Recent' */}
+                                        Recent Activity
                                     </span>
                                 </div>
 
-                                <div className="flex gap-2">
-                                    {log.isRemoved && (
-                                        <Badge variant="destructive" className="h-5 text-[10px] uppercase font-bold px-2">
-                                            Removed
-                                        </Badge>
-                                    )}
-                                    {log.isLeaved && (
-                                        <Badge className="h-5 text-[10px] uppercase font-bold px-2 bg-amber-100 text-amber-700 hover:bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400 border-none">
-                                            Left
-                                        </Badge>
-                                    )}
+                                <div className="rounded-lg border border-transparent group-hover:border-slate-100 dark:group-hover:border-slate-900 transition-colors p-0.5">
+                                    <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed italic">
+                                        "{log.msg || "No additional details provided."}"
+                                    </p>
                                 </div>
-                            </div>
-
-                            {/* Message Content */}
-                            <div className="pl-4 border-l-2 border-muted ml-1 mt-1">
-                                <p className="text-sm text-muted-foreground leading-relaxed">
-                                    {log.msg || "No additional details provided."}
-                                </p>
                             </div>
                         </div>
                     ))}

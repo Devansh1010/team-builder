@@ -58,34 +58,34 @@ export function DataTable<TData, TValue>({ columns, data, meta }: DataTableProps
   })
 
   return (
-    <div className="w-full space-y-4">
-      {/* Toolbar: Search and View Options */}
-      <div className="flex items-center justify-between gap-4 py-4">
-        <div className="flex flex-1 items-center space-x-2">
+    <div className="w-full space-y-6 animate-in fade-in duration-500">
+      {/* Toolbar: High-Contrast Search */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="relative w-full sm:w-[300px]">
           <Input
-            placeholder="Search Tasks..."
+            placeholder="SEARCH TASKS..."
             value={(table.getColumn("title")?.getFilterValue() as string) ?? ""}
             onChange={(event) =>
               table.getColumn("title")?.setFilterValue(event.target.value)
             }
-            className="h-9 w-[150px] lg:w-[250px] transition-colors bg-white border-gray-200 dark:bg-[#161616] dark:border-white/10 focus-visible:ring-sky-500"
+            className="h-10 pl-4 font-bold text-xs uppercase tracking-widest border-slate-200 bg-white dark:bg-transparent dark:border-slate-800 focus-visible:ring-slate-900 rounded-lg transition-all"
           />
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3 w-full sm:w-auto">
           <CreateTask group={(table.options.meta as any)?.group} />
           <DataTableViewOptions table={table} />
         </div>
       </div>
 
-      {/* Table Container */}
-      <div className="rounded-xl border border-gray-200 bg-white overflow-hidden dark:border-white/5 dark:bg-[#111111] shadow-sm dark:shadow-none transition-colors">
+      {/* Table Container: Sharp & Minimal */}
+      <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-black/20 overflow-hidden shadow-sm">
         <Table>
-          <TableHeader className="bg-gray-50/50 dark:bg-white/2">
+          <TableHeader className="bg-slate-50/50 dark:bg-white/2 border-b border-slate-200 dark:border-slate-800">
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className="hover:bg-transparent border-gray-200 dark:border-white/5">
+              <TableRow key={headerGroup.id} className="hover:bg-transparent">
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id} className="font-bold text-slate-900 dark:text-gray-100 uppercase text-[11px] tracking-wider">
+                  <TableHead key={header.id} className="h-12 px-4 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
                     {header.isPlaceholder
                       ? null
                       : flexRender(
@@ -97,16 +97,16 @@ export function DataTable<TData, TValue>({ columns, data, meta }: DataTableProps
               </TableRow>
             ))}
           </TableHeader>
+
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                  className="border-gray-100 dark:border-white/5 hover:bg-gray-50/50 dark:hover:bg-white/2 transition-colors"
+                  className="border-b border-slate-100 dark:border-slate-900 last:border-0 hover:bg-slate-50/50 dark:hover:bg-white/2 transition-colors"
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="py-4 text-sm text-slate-600 dark:text-gray-300">
+                    <TableCell key={cell.id} className="py-4 px-4 text-sm font-medium text-slate-700 dark:text-slate-300">
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
@@ -116,9 +116,13 @@ export function DataTable<TData, TValue>({ columns, data, meta }: DataTableProps
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className="h-32 text-center text-slate-500 dark:text-gray-400"
+                  className="h-40 text-center"
                 >
-                  No results found.
+                  <div className="flex flex-col items-center justify-center space-y-2">
+                    <span className="text-2xl">🔍</span>
+                    <p className="text-sm font-bold text-slate-900 dark:text-slate-100 uppercase tracking-tighter">No tasks found</p>
+                    <p className="text-xs text-slate-500">Try adjusting your filters or search query.</p>
+                  </div>
                 </TableCell>
               </TableRow>
             )}
@@ -127,7 +131,10 @@ export function DataTable<TData, TValue>({ columns, data, meta }: DataTableProps
       </div>
 
       {/* Pagination Section */}
-      <div className="flex items-center justify-end py-2">
+      <div className="flex items-center justify-between px-2">
+        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+          {table.getFilteredRowModel().rows.length} Total Tasks
+        </p>
         <DataTablePagination table={table} />
       </div>
     </div>

@@ -16,78 +16,68 @@ import { Moon, Sun } from 'lucide-react'
 export function UserNavigationMenu() {
   const { setTheme } = useTheme()
 
-  // Shared class for nav links to keep it DRY (Don't Repeat Yourself)
-  const navLinkClass = "text-[17px] font-medium transition-all text-gray-600 hover:text-sky-600 dark:text-gray-400 dark:hover:text-white"
-
   return (
-    <div className="sticky top-0 z-50 w-full border-b border-gray-300/50 bg-[#eeeeee]/80 backdrop-blur-md dark:border-white/5 dark:bg-[#111111]/80 transition-colors">
-      <div className="mx-auto max-w-340 px-6 py-3 flex items-center justify-between">
-        
-        {/* Brand */}
-        <div className="flex items-center gap-2">
-          <span className="text-2xl font-bold tracking-tighter text-gray-900 dark:text-white">
+    <div className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/80 backdrop-blur-md dark:border-slate-800 dark:bg-black/80 transition-all duration-300">
+      <div className="mx-auto max-w-7xl px-6 h-16 flex items-center justify-between">
+
+        {/* Brand: High-Contrast & Bold */}
+        <div className="flex items-center gap-2 group cursor-pointer">
+          <div className="h-8 w-8 bg-slate-900 dark:bg-slate-100 rounded-lg flex items-center justify-center transition-transform group-hover:rotate-6">
+            <span className="text-white dark:text-black font-black text-xl">T</span>
+          </div>
+          <span className="text-xl font-black tracking-tighter text-slate-900 dark:text-white uppercase italic">
             TeamUp
           </span>
         </div>
 
-        {/* Navigation */}
-        <NavigationMenu>
-          <NavigationMenuList className="flex items-center gap-8">
-            <NavigationMenuItem>
-              <NavigationMenuLink asChild>
-                <Link href="/member/dashboard" className={navLinkClass}>
-                  Group
-                </Link>
-              </NavigationMenuLink>
-            </NavigationMenuItem>
-
-            <NavigationMenuItem>
-              <NavigationMenuLink asChild>
-                <Link href="/member/dashboard/join" className={navLinkClass}>
-                  Join
-                </Link>
-              </NavigationMenuLink>
-            </NavigationMenuItem>
-
-            <NavigationMenuItem>
-              <NavigationMenuLink asChild>
-                <Link href="/member/dashboard/profile" className={navLinkClass}>
-                  Profile
-                </Link>
-              </NavigationMenuLink>
-            </NavigationMenuItem>
+        {/* Navigation: Minimalist Underline Style */}
+        <NavigationMenu className="hidden md:flex">
+          <NavigationMenuList className="flex items-center gap-10">
+            {['Group', 'Join', 'Profile'].map((item) => (
+              <NavigationMenuItem key={item}>
+                <NavigationMenuLink asChild>
+                  <Link
+                    href={`/member/dashboard/${item === 'Group' ? '' : item.toLowerCase()}`}
+                    className="group relative py-2 text-sm font-bold uppercase tracking-widest text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 transition-colors"
+                  >
+                    {item}
+                    
+                  </Link>
+                </NavigationMenuLink>
+              </NavigationMenuItem>
+            ))}
           </NavigationMenuList>
         </NavigationMenu>
 
-        {/* Action Area */}
-        <div className="flex items-center gap-4">
+        {/* Action Area: Sharp & Functional */}
+        <div className="flex items-center gap-6">
           <Button
             variant="ghost"
-            className="text-gray-600 hover:bg-red-50 hover:text-red-600 dark:text-gray-400 dark:hover:bg-red-500/10 dark:hover:text-red-500 transition-all rounded-full px-5"
+            className="text-xs font-black uppercase tracking-[0.15em] text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all px-4"
           >
-            <span className='text-[18px] font-medium'>Logout</span>
+            Logout
           </Button>
 
-          <div className="flex items-center space-x-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="bg-transparent border-gray-300 dark:border-white/10 dark:text-white"
-                >
-                  <Sun className="h-[1.2rem] w-[1.2rem] scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
-                  <Moon className="absolute h-[1.2rem] w-[1.2rem] scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" />
-                  <span className="sr-only">Toggle theme</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="dark:bg-[#161616] dark:border-white/10">
-                <DropdownMenuItem onClick={() => setTheme('light')}>Light</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setTheme('dark')}>Dark</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setTheme('system')}>System</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+          <div className="h-6 w-px bg-slate-200 dark:bg-slate-800" /> {/* Divider */}
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+              >
+                <Sun className="h-4 w-4 scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
+                <Moon className="absolute h-4 w-4 scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" />
+                <span className="sr-only">Toggle theme</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="p-1 border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950">
+              <DropdownMenuItem className="font-bold text-xs uppercase tracking-widest" onClick={() => setTheme('light')}>Light</DropdownMenuItem>
+              <DropdownMenuItem className="font-bold text-xs uppercase tracking-widest" onClick={() => setTheme('dark')}>Dark</DropdownMenuItem>
+              <DropdownMenuItem className="font-bold text-xs uppercase tracking-widest" onClick={() => setTheme('system')}>System</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </div>
