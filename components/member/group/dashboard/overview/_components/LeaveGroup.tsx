@@ -26,11 +26,14 @@ import {
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { fetchActiveGroups, handleLeaveGroup } from '@/lib/api/group.api'
 import { Loader2, LogOut } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 const LeaveGroupDialog = () => {
     // 1. Manage the open state of the Dialog
     const [open, setOpen] = useState(false)
     const queryClient = useQueryClient()
+
+    const router = useRouter()
 
     const { data: groupOverview, isLoading: isQueryLoading } = useQuery({
         queryKey: ['activeGroups'],
@@ -49,8 +52,8 @@ const LeaveGroupDialog = () => {
         onSuccess: () => {
             toast.success('Group Left Successfully')
             queryClient.invalidateQueries({ queryKey: ['activeGroups'] })
-            // 2. Close the dialog on success
             setOpen(false)
+            router.push('/member/dashboard')
         },
         onError: () => {
             toast.error('Failed to Leave Group')

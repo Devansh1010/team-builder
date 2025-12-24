@@ -1,3 +1,4 @@
+import { Badge } from '@/components/ui/badge'
 import { fetchGroupLogs } from '@/lib/api/group.api'
 import { ILogs } from '@/models/user_models/group-log.model'
 import { IGroup } from '@/models/user_models/group.model'
@@ -29,30 +30,41 @@ const GroupLog = ({ group }: { group: IGroup }) => {
                 </div>
             ) : (
                 /* Active State */
-                <div className="space-y-3">
+                <div className="space-y-4">
                     {groupLog.logs.map((log: ILogs, index: number) => (
                         <div
                             key={index}
-                            className="flex flex-col p-3 rounded-lg border bg-card text-card-foreground hover:bg-accent/50 transition-colors"
+                            className="group relative flex flex-col gap-1 p-4 rounded-xl border bg-card transition-all hover:shadow-md hover:border-primary/20"
                         >
-                            <div className="flex items-center justify-between mb-1">
-                                <p className="text-sm font-semibold leading-none tracking-tight">
-                                    {log.username}
-                                </p>
+                            {/* Top Row: User and Badges */}
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                    <div className="h-2 w-2 rounded-full bg-primary/40 group-hover:bg-primary transition-colors" />
+                                    <span className="text-sm font-bold tracking-tight text-foreground">
+                                        {log.username}
+                                    </span>
+                                </div>
+
                                 <div className="flex gap-2">
                                     {log.isRemoved && (
-                                        <span className="px-2 py-0.5 text-[10px] font-medium rounded-full bg-destructive/10 text-destructive border border-destructive/20">
+                                        <Badge variant="destructive" className="h-5 text-[10px] uppercase font-bold px-2">
                                             Removed
-                                        </span>
+                                        </Badge>
                                     )}
                                     {log.isLeaved && (
-                                        <span className="px-2 py-0.5 text-[10px] font-medium rounded-full bg-orange-100 text-orange-600 border border-orange-200 dark:bg-orange-900/30 dark:text-orange-400">
+                                        <Badge className="h-5 text-[10px] uppercase font-bold px-2 bg-amber-100 text-amber-700 hover:bg-amber-100 dark:bg-amber-900/30 dark:text-amber-400 border-none">
                                             Left
-                                        </span>
+                                        </Badge>
                                     )}
                                 </div>
                             </div>
-                            <p className="text-sm text-muted-foreground">{log.msg}</p>
+
+                            {/* Message Content */}
+                            <div className="pl-4 border-l-2 border-muted ml-1 mt-1">
+                                <p className="text-sm text-muted-foreground leading-relaxed">
+                                    {log.msg || "No additional details provided."}
+                                </p>
+                            </div>
                         </div>
                     ))}
                 </div>

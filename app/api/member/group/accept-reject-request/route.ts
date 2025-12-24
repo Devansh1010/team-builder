@@ -91,29 +91,42 @@ export async function POST(req: NextRequest) {
       if (isAccept) {
         // ACCEPT REQUEST
         const updatedGroup = await Group.findOneAndUpdate(
-          { _id: groupId, 'requestedUser.userId': requestedUserId },
+          {
+            _id: groupId
+          },
+          {
+            // 1. Remove them if they exist (prevents duplicates)
+            // 2. Remove them from requests (completes the join)
+            $pull: {
+              members: { userId: requestedUserId },
+              accessTo: { userId: requestedUserId },
+              requestedUser: { userId: requestedUserId }
+            }
+          },
+          { session, new: true }
+        );
+
+        // Immediately add them back (The "Proceed" part)
+        await Group.updateOne(
+          { _id: groupId },
           {
             $push: {
-              accessTo: {
-                userId: requestedUserId,
-                username: userCreatedGroup.username,
-                userRole: UserRole.MEMBER,
-                joinedAt: new Date(),
-              },
-            },
-
-            $addToSet: {
               members: {
                 userId: requestedUserId,
                 username: userCreatedGroup.username,
                 userRole: UserRole.MEMBER,
                 joinedAt: new Date(),
               },
-            },
-            $pull: { requestedUser: { userId: requestedUserId } },
+              accessTo: {
+                userId: requestedUserId,
+                username: userCreatedGroup.username,
+                userRole: UserRole.MEMBER,
+                joinedAt: new Date(),
+              }
+            }
           },
-          { session, new: true }
-        )
+          { session }
+        );
 
         const updatedUser = await User.findOneAndUpdate(
           { _id: requestedUserId, 'requestedGroups.groupId': groupId },
