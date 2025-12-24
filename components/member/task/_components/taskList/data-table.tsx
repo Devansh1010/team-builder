@@ -57,8 +57,6 @@ export function DataTable<TData, TValue>({ columns, data, meta }: DataTableProps
     },
   })
 
-  console.log(table.options.meta)
-
   return (
     <div className="w-full space-y-4">
       {/* Toolbar: Search and View Options */}

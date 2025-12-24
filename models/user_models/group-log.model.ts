@@ -1,6 +1,6 @@
 import { Schema, model, models } from 'mongoose'
 
-interface ILogs {
+export interface ILogs {
   userId: Schema.Types.ObjectId
   username: string
   isRemoved?: boolean

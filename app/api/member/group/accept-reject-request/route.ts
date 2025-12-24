@@ -33,9 +33,7 @@ export async function POST(req: NextRequest) {
 
     //check if user created a group or not
 
-    const userCreatedGroup = await User.findById(requestedUserId).select(
-      'groups username email -password avatar'
-    )
+    const userCreatedGroup = await User.findById(requestedUserId)
 
     if (isAccept) {
       if (userCreatedGroup.groups?.length) {

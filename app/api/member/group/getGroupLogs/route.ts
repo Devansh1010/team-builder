@@ -21,11 +21,13 @@ export async function GET(req: NextRequest) {
         const { searchParams } = new URL(req.url)
         const groupId = searchParams.get('groupId')
 
+        console.log(groupId)
         await dbConnect()
 
         if (groupId) {
             const groupLogs = await GroupLog.findOne({ groupId })
 
+            console.log('group Logs:- ',groupLogs)
             if (!groupLogs) {
                 return createResponse(
                     { success: false, message: 'Unable to Get the Group Logs' },

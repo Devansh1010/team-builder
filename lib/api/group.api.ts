@@ -76,3 +76,9 @@ export const createGroup = async ({
   console.log(res.data)
   return res.data
 }
+
+export const fetchGroupLogs = async (groupId: string) => {
+  const res = await axios.get(`/api/member/group/getGroupLogs?groupId=${groupId}`)
+
+  return res.data.data
+}

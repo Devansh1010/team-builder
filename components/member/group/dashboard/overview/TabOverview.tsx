@@ -37,6 +37,7 @@ import RequestedUsers from './_components/RequestedUsers'
 import InvitedUsers from './_components/InvitedUsers'
 import Members from './_components/Members'
 import GroupHeader from '../_components/GroupHeader'
+import GroupLog from './_components/GroupLog'
 
 const TabOverview = ({ group }: { group: IGroup }) => {
   const { data: groupOverview, isLoading } = useQuery({
@@ -144,10 +145,11 @@ const TabOverview = ({ group }: { group: IGroup }) => {
       <div className="flex flex-col gap-6">
         <Tabs defaultValue="requests" className="w-full">
           {/* Tab Headers */}
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="requests">Requests</TabsTrigger>
             <TabsTrigger value="invited">Invited Members</TabsTrigger>
             <TabsTrigger value="members">Group Members</TabsTrigger>
+            <TabsTrigger value="logs">Group Logs</TabsTrigger>
           </TabsList>
 
 
@@ -164,6 +166,10 @@ const TabOverview = ({ group }: { group: IGroup }) => {
           {/* Tab 3 */}
           <TabsContent value="members" className="mt-6">
             <Members />
+          </TabsContent>
+
+          <TabsContent value="logs" className="mt-6">
+            <GroupLog group={group} />
           </TabsContent>
         </Tabs>
       </div>

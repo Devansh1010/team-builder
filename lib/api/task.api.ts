@@ -3,8 +3,6 @@ import axios from 'axios'
 
 export const fetchAllGroupTasks = async (groupId: string) => {
   const res = await axios.get(`/api/member/task/getTasksByGroupId?groupId=${groupId}`)
-
-  console.log('res: - ', res.data.data)
   return res.data.data
 }
 
