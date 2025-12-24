@@ -37,7 +37,8 @@ export async function POST(req: NextRequest) {
     const { searchParams } = new URL(req.url)
     const groupId = searchParams.get('groupId')
 
-    const { msg } = await req.json()
+    const { message } = await req.json()
+    const msg = message
 
     if (!groupId) {
       return createResponse({ success: false, message: 'Invalid GroupId' }, StatusCode.BAD_REQUEST)
@@ -75,7 +76,6 @@ export async function POST(req: NextRequest) {
 
     try {
       // Remove user from accessTo array
-      console.log('Get here')
       const updatedGroup = await Group.findByIdAndUpdate(
         groupId,
         {
