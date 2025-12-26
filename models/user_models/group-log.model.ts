@@ -6,6 +6,7 @@ export interface ILogs {
   isRemoved?: boolean
   isLeaved?: boolean
   msg: string
+  isCreated?: Date
 }
 
 interface IGroup_Log {

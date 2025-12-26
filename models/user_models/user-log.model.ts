@@ -1,6 +1,6 @@
 import { Schema, model, models } from 'mongoose'
 
-interface ILogEntry {
+export interface ILogEntry {
   groupId: Schema.Types.ObjectId
   groupName: string
   isCreated?: boolean

@@ -12,9 +12,21 @@ import { Button } from '@/components/ui/button'
 import { useTheme } from 'next-themes'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Moon, Sun } from 'lucide-react'
+import axios from 'axios'
+import { toast } from 'sonner'
 
 export function UserNavigationMenu() {
   const { setTheme } = useTheme()
+
+  const handleLogout = async () => {
+    const res = await axios.post('/api/member/user/sign-out')
+
+    if (res.data.success) {
+      window.location.reload();
+      return toast.success(res.data.message)
+    }
+
+  }
 
   return (
     <div className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white/80 backdrop-blur-md dark:border-slate-800 dark:bg-black/80 transition-all duration-300">
@@ -41,7 +53,7 @@ export function UserNavigationMenu() {
                     className="group relative py-2 text-sm font-bold uppercase tracking-widest text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100 transition-colors"
                   >
                     {item}
-                    
+
                   </Link>
                 </NavigationMenuLink>
               </NavigationMenuItem>
@@ -52,6 +64,7 @@ export function UserNavigationMenu() {
         {/* Action Area: Sharp & Functional */}
         <div className="flex items-center gap-6">
           <Button
+            onClick={handleLogout}
             variant="ghost"
             className="text-xs font-black uppercase tracking-[0.15em] text-slate-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all px-4"
           >

@@ -3,7 +3,7 @@ import { dbConnect } from '@/lib/dbConnect'
 import { NextRequest } from 'next/server'
 import valkey from '@/lib/valkey'
 import { VerifyUser } from '@/lib/verifyUser/userVerification'
-import User, { UserRole } from '@/models/user_models/user.model'
+import User from '@/models/user_models/user.model'
 
 export async function GET(req: NextRequest) {
   try {
