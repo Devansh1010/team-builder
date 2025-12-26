@@ -1,3 +1,4 @@
+'use client'
 import { fetchCurrentActiveUser } from '@/lib/api/user.api'
 import { useQuery } from '@tanstack/react-query'
 import { User, Mail, Shield, CalendarDays } from 'lucide-react'
@@ -8,6 +9,10 @@ const UserProfileDetails = () => {
         queryKey: ['activeUser'],
         queryFn: fetchCurrentActiveUser,
     })
+
+    console.log(activeUser)
+
+     if (isLoading) return <div className="p-10 text-center font-black uppercase tracking-widest animate-pulse">Syncing Profile...</div>
 
     return (
         <div className="w-full space-y-6 animate-in fade-in duration-500">

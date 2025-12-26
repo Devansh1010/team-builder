@@ -1,4 +1,6 @@
+'use client'
 import { fetchCurrentActiveUser, fetchUserLogs } from '@/lib/api/user.api'
+
 import { ILogEntry } from '@/models/user_models/user-log.model'
 import { useQuery } from '@tanstack/react-query'
 import { History, ArrowRightLeft, UserPlus, UserMinus } from 'lucide-react'
@@ -9,6 +11,8 @@ const UserActivityLogs = () => {
         queryKey: ['activeUserLogs'],
         queryFn: fetchUserLogs,
     })
+
+     if (isLoading) return <div className="p-10 text-center font-black uppercase tracking-widest animate-pulse">Syncing Profile Logs...</div>
 
     return (
         <div className="w-full space-y-6">
@@ -24,7 +28,7 @@ const UserActivityLogs = () => {
                     </div>
                 ) : (
                     <div className="space-y-0 relative before:absolute before:inset-y-0 before:left-[17px] before:w-px before:bg-slate-100 dark:before:bg-slate-900">
-                        {activeUserLogs.map((log: ILogEntry, index: number) => (
+                        {activeUserLogs.logs?.map((log: ILogEntry, index: number) => (
                             <div key={index} className="group relative flex items-start gap-6 pb-8 last:pb-0">
                                 {/* Timeline Icon Marker */}
                                 <div className={`relative z-10 mt-1 h-9 w-9 shrink-0 flex items-center justify-center rounded-lg border-2 border-white dark:border-slate-950 bg-slate-50 dark:bg-slate-900 transition-all group-hover:scale-110 shadow-sm
