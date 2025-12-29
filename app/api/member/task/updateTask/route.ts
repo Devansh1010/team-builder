@@ -38,6 +38,8 @@ export async function PATCH(req: NextRequest) {
 
     const { operation, payload } = await req.json()
 
+    console.log(operation, payload)
+
     if (!operation) {
       return createResponse(
         { success: false, message: 'Operation required' },
@@ -112,9 +114,26 @@ export async function PATCH(req: NextRequest) {
       }
 
       case 'ADD_ASSIGNEE': {
-        const { ADD_ASSIGNEE } = payload || {}
-        const assignee = ADD_ASSIGNEE.assignee
+        const assignee = payload?.assignee;
+        console.log(assignee)
+
         if (!assignee) return badRequest('userId required')
+
+        if (!assignee || !mongoose.Types.ObjectId.isValid(assignee)) {
+          return badRequest('Valid assignee userId required');
+        }
+
+        // 1. Check if user is already assigned?
+        const alreadyAssigned = task.assignedTo.some(
+          (a: any) => a.userId.toString() === assignee.toString()
+        );
+
+        if (alreadyAssigned) {
+          return createResponse(
+            { success: false, message: 'User is already assigned to this task' },
+            StatusCode.BAD_REQUEST
+          );
+        }
 
         // validate user is in group
         // const isValidUser = await Group.exists({
@@ -124,24 +143,25 @@ export async function PATCH(req: NextRequest) {
 
         // if (!isValidUser) return badRequest('Invalid assignee')
 
-        updateQuery.$addToSet = {
+        updateQuery.$push = {
           assignedTo: {
-            assignee,
+            userId: new mongoose.Types.ObjectId(assignee),
             assignedAt: new Date(),
           },
-        }
-        break
+        };
+        break;
       }
 
       case 'REMOVE_ASSIGNEE': {
-        const { REMOVE_ASSIGNEE } = payload || {}
-        const assignee = REMOVE_ASSIGNEE.assignee
+        
+        const assignee = payload?.assignee
+
         if (!assignee) return badRequest('userId required')
 
         updateQuery.$pull = {
-          assignedTo: { assignee },
-        }
-        break
+          assignedTo: { userId: new mongoose.Types.ObjectId(assignee) },
+        };
+        break;
       }
 
       default:

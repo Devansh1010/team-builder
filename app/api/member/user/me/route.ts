@@ -18,8 +18,6 @@ export async function GET(req: NextRequest) {
       return createResponse({ success: false, message: 'Unauthorized' }, StatusCode.UNAUTHORIZED)
     }
 
-    console.log('get here')
-
     const userId = data.id
 
     await dbConnect()

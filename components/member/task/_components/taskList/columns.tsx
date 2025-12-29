@@ -27,6 +27,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
+import { useQuery } from '@tanstack/react-query'
+import { fetchCurrentActiveUser } from '@/lib/api/user.api'
 
 export type Task = {
   _id: string
@@ -40,6 +42,8 @@ export type Task = {
 }
 
 export const columns: ColumnDef<Task>[] = [
+
+  //checkbox
   {
     id: "select",
     header: ({ table }) => (
@@ -61,6 +65,36 @@ export const columns: ColumnDef<Task>[] = [
     enableSorting: false,
     enableHiding: false,
   },
+
+  //my-tasks
+  {
+    id: "my-task",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="For Me" />
+    ),
+    cell: ({ row, table }) => {
+      // 1. Get the ID from the table meta
+      const activeUserId = (table.options.meta as any)?.activeUserId;
+      console.log(activeUserId)
+
+      const isAssignedToMe = (row.original as any).assignedTo?.some(
+        (a: any) => a.userId?.toString() === activeUserId?.toString()
+      );
+
+      if (!isAssignedToMe) return null;
+
+      return (
+        <div className="flex items-center justify-center">
+          <span className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-[9px] font-black uppercase tracking-tighter">
+            <div className="h-1 w-1 rounded-full bg-emerald-500 animate-pulse" />
+            My Task
+          </span>
+        </div>
+      );
+    },
+  },
+
+  // title
   {
     accessorKey: 'title',
     header: ({ column }) => {
@@ -75,6 +109,8 @@ export const columns: ColumnDef<Task>[] = [
       )
     },
   },
+
+  // status
   {
     accessorKey: 'status',
     header: ({ column }) => (
@@ -115,6 +151,8 @@ export const columns: ColumnDef<Task>[] = [
       );
     },
   },
+
+  // priority
   {
     accessorKey: 'priority',
     header: ({ column }) => (
@@ -156,55 +194,76 @@ export const columns: ColumnDef<Task>[] = [
       )
     },
   },
+
+  // AssignedTO
   {
     accessorKey: 'assignedTo',
     header: 'Assigned To',
     cell: ({ row, table }) => {
-
-      const assignedIds = row.original.assignedTo || [];
+      const assignments = row.original.assignedTo || [];
       const meta = table.options.meta as any;
-      console.log(meta)
+
+      // 1. Check if the current user is a leader
+      const isLeader = meta?.isLeader;
+
+      // 2. If NOT a leader, show a simple read-only badge instead of the Popover
+      if (!isLeader) {
+        return (
+          <div className="flex items-center gap-1">
+            <span className="text-[10px] uppercase tracking-wider font-bold text-slate-500 bg-slate-100 dark:bg-slate-800/50 px-2 py-1 rounded">
+              {assignments.length > 0 ? `${assignments.length} Assigned` : "No Assignees"}
+            </span>
+          </div>
+        );
+      }
+
+      // 3. If IS a leader, show the full Popover/Command logic (Your existing code)
       const groupMembers = meta?.group?.accessTo || [];
-
-      const toggleMember = (memberId: string) => {
-        const isAssigned = assignedIds.includes(memberId);
-        const updatedIds = isAssigned
-          ? assignedIds.filter(id => id !== memberId)
-          : [...assignedIds, memberId];
-
+      const toggleMember = (userId: string) => {
+        const isAssigned = assignments.some((a: any) => a.userId?.toString() === userId?.toString());
+        const operation = isAssigned ? 'REMOVE_ASSIGNEE' : 'ADD_ASSIGNEE';
         meta?.updateTask({
           id: row.original._id,
-          operation: 'UPDATE_ASSIGNED_TO',
-          value: { assignedTo: updatedIds }
+          operation,
+          value: { assignee: userId }
         });
       };
 
       return (
-        <div className="flex items-center gap-1 flex-wrap">
+        <div className="flex items-center gap-1">
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="outline" size="sm" className="h-7 border-dashed px-2">
+              <Button variant="outline" size="sm" className="h-7 border-dashed border-slate-700 bg-transparent hover:bg-slate-800">
                 <UserPlus className="mr-2 h-3 w-3" />
-                {assignedIds.length > 0 ? `${assignedIds.length} Assigned` : "Assign"}
+                <span className="text-[11px] uppercase tracking-wider font-bold">
+                  {assignments.length > 0 ? `${assignments.length} Assigned` : "Assign"}
+                </span>
               </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-[200px] p-0" align="start">
-              <Command>
-                <CommandInput placeholder="Search members..." />
-                <CommandList>
+            <PopoverContent className="w-[220px] p-0 bg-[#161616] border-white/10" align="start">
+              <Command className="bg-transparent">
+                <CommandInput placeholder="Search members..." className="text-white" />
+                <CommandList className="text-slate-300">
                   <CommandEmpty>No member found.</CommandEmpty>
                   <CommandGroup>
                     {groupMembers.map((member: any) => {
-                      const isSelected = assignedIds.includes(member._id);
+
+                      const isSelected = assignments.some((a: any) => {
+
+                        // console.log(`Comparing ${a._id} to ${member.userId}`);
+                        return a.userId?.toString() === member.userId?.toString();
+                      });
+
                       return (
                         <CommandItem
-                          key={member._id}
-                          onSelect={() => toggleMember(member._id)}
+                          key={member.userId}
+                          onSelect={() => toggleMember(member.userId)}
+                          className="flex items-center gap-2 px-2 py-1.5 cursor-pointer focus:bg-white/5"
                         >
-                          <div className={`mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary ${isSelected ? "bg-primary text-primary-foreground" : "opacity-50"}`}>
-                            {isSelected && <Check className="h-3 w-3" />}
+                          <div className={`flex h-4 w-4 items-center justify-center rounded border border-slate-500 ${isSelected ? "bg-emerald-500 border-emerald-500" : "opacity-50"}`}>
+                            {isSelected && <Check className="h-3 w-3 text-white" />}
                           </div>
-                          <span>{member.username || member.email}</span>
+                          <span className="text-xs">{member.username.toUpperCase() || "Member"}</span>
                         </CommandItem>
                       );
                     })}
@@ -218,6 +277,7 @@ export const columns: ColumnDef<Task>[] = [
     },
   },
 
+  // due date
   {
     accessorKey: 'dueDate',
     header: ({ column }) => (
@@ -269,6 +329,8 @@ export const columns: ColumnDef<Task>[] = [
       );
     },
   },
+
+  // created at
   {
     accessorKey: 'createdAt',
     header: ({ column }) => (

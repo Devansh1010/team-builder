@@ -10,8 +10,6 @@ const UserProfileDetails = () => {
         queryFn: fetchCurrentActiveUser,
     })
 
-    console.log(activeUser)
-
      if (isLoading) return <div className="p-10 text-center font-black uppercase tracking-widest animate-pulse">Syncing Profile...</div>
 
     return (

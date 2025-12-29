@@ -35,24 +35,23 @@ export const createTask = async ({
   return res.data
 }
 
-export const updateTask = async (_id: string, field: string, value: string) => {
-
+export const updateTask = async (_id: string, operation: string, value: any) => {
   try {
     const response = await axios.patch(`/api/member/task/updateTask?taskId=${_id}`, {
-      operation: `${field.toUpperCase()}`,
-      payload: { [field]: value }
+      operation: operation, // The operation string (e.g., 'ADD_ASSIGNEE')
+      payload: value        // The object (e.g., { ADD_ASSIGNEE: { assignee: id } })
     });
 
-    return response.data
-
+    return response.data;
   } catch (error) {
-    if (axios.isAxiosError(error)) {
-      console.error("Axios Error:", error.response?.data || error.message);
-    } else {
-      console.error("Unexpected Error:", error);
+    // Re-throw the error so useMutation can see it
+    if (axios.isAxiosError(error) && error.response) {
+      // Throw the actual data from the backend (which contains your success: false, message: "...")
+      throw error.response.data;
     }
+    throw new Error("An unexpected error occurred");
   }
-}
+};
 
 export const fetchGroupTask = async (taskId: string, groupId: string) => {
   const res = await axios.get(`/api/member/task/getTaskByTaskId?taskId=${taskId}&groupId=${groupId}`)

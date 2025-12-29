@@ -6,14 +6,24 @@ import { IGroup } from '@/models/user_models/group.model'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import CreateTask from '../CreateTask'
+import { fetchCurrentActiveUser } from '@/lib/api/user.api'
 
 export default function TaskList({ group }: { group: IGroup }) {
   if (!group._id!.toString()) return null
 
+  const { data: activeUser } = useQuery({
+    queryKey: ['activeUser'],
+    queryFn: fetchCurrentActiveUser,
+  })
+
+  const currentUserInGroup = group?.accessTo?.find(
+    (member: any) => member.userId?.toString() === activeUser?._id?.toString()
+  );
+  const isLeader = currentUserInGroup?.userRole === 'leader';
+
   const {
     data: groupTasks = [],
     isLoading,
-    isFetching, // This is true during the background re-fetch
   } = useQuery({
     queryKey: ['groupTasks', group._id],
     queryFn: () => fetchAllGroupTasks(group._id!.toString()),
@@ -29,19 +39,16 @@ export default function TaskList({ group }: { group: IGroup }) {
 
   const { mutate: updateTaskMutation } = useMutation({
     mutationFn: ({ id, operation, value }: { id: string; operation: string; value: any }) =>
-    updateTask(id, operation, value),
+      updateTask(id, operation, value),
 
-    onSuccess: () => {
-      toast.success(`Task updated successfully`);
+    onSuccess: (data) => {
+      toast.success(data.message || `Task updated successfully`);
       queryClient.invalidateQueries({ queryKey: ['groupTasks', group._id!.toString()] });
     },
 
     onError: (error: any) => {
-
-      const errorMessage = error.response?.data?.message || error.message || "Failed to Update task";
-
+      const errorMessage = error.message || "Failed to update task";
       toast.error(errorMessage);
-
     },
   });
 
@@ -85,7 +92,9 @@ export default function TaskList({ group }: { group: IGroup }) {
         meta={{
           groupId: group._id,
           updateTask: updateTaskMutation,
-          group: group
+          group: group,
+          activeUserId: activeUser._id,
+          isLeader
         }}
       />
     </div>
