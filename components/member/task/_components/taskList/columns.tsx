@@ -1,12 +1,10 @@
 'use client'
 
-import axios from 'axios';
-
 import { TaskPriority, TaskStatus } from '@/lib/constraints/task'
 import { ColumnDef } from '@tanstack/react-table'
 import { DataTableColumnHeader } from './data-table-column-header'
 import { Button } from '@/components/ui/button'
-import { ArrowUpDown } from 'lucide-react'
+import { ArrowUpDown, Check, UserPlus } from 'lucide-react'
 
 import {
   Select,
@@ -15,9 +13,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList
+} from "@/components/ui/command"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 
-// This type is used to define the shape of our data.
-// You can use a Zod schema here if you want.
 export type Task = {
   _id: string
   title: string
@@ -30,6 +40,27 @@ export type Task = {
 }
 
 export const columns: ColumnDef<Task>[] = [
+  {
+    id: "select",
+    header: ({ table }) => (
+      <Checkbox
+        checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
+        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        aria-label="Select all"
+        className="translate-y-2px border-slate-300 dark:border-slate-700"
+      />
+    ),
+    cell: ({ row }) => (
+      <Checkbox
+        checked={row.getIsSelected()}
+        onCheckedChange={(value) => row.toggleSelected(!!value)}
+        aria-label="Select row"
+        className="translate-y-2px border-slate-300 dark:border-slate-700"
+      />
+    ),
+    enableSorting: false,
+    enableHiding: false,
+  },
   {
     accessorKey: 'title',
     header: ({ column }) => {
@@ -127,8 +158,66 @@ export const columns: ColumnDef<Task>[] = [
   },
   {
     accessorKey: 'assignedTo',
-    header: 'AssignedTo',
+    header: 'Assigned To',
+    cell: ({ row, table }) => {
+
+      const assignedIds = row.original.assignedTo || [];
+      const meta = table.options.meta as any;
+      console.log(meta)
+      const groupMembers = meta?.group?.accessTo || [];
+
+      const toggleMember = (memberId: string) => {
+        const isAssigned = assignedIds.includes(memberId);
+        const updatedIds = isAssigned
+          ? assignedIds.filter(id => id !== memberId)
+          : [...assignedIds, memberId];
+
+        meta?.updateTask({
+          id: row.original._id,
+          operation: 'UPDATE_ASSIGNED_TO',
+          value: { assignedTo: updatedIds }
+        });
+      };
+
+      return (
+        <div className="flex items-center gap-1 flex-wrap">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm" className="h-7 border-dashed px-2">
+                <UserPlus className="mr-2 h-3 w-3" />
+                {assignedIds.length > 0 ? `${assignedIds.length} Assigned` : "Assign"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[200px] p-0" align="start">
+              <Command>
+                <CommandInput placeholder="Search members..." />
+                <CommandList>
+                  <CommandEmpty>No member found.</CommandEmpty>
+                  <CommandGroup>
+                    {groupMembers.map((member: any) => {
+                      const isSelected = assignedIds.includes(member._id);
+                      return (
+                        <CommandItem
+                          key={member._id}
+                          onSelect={() => toggleMember(member._id)}
+                        >
+                          <div className={`mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary ${isSelected ? "bg-primary text-primary-foreground" : "opacity-50"}`}>
+                            {isSelected && <Check className="h-3 w-3" />}
+                          </div>
+                          <span>{member.username || member.email}</span>
+                        </CommandItem>
+                      );
+                    })}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </PopoverContent>
+          </Popover>
+        </div>
+      );
+    },
   },
+
   {
     accessorKey: 'dueDate',
     header: ({ column }) => (

@@ -3,10 +3,9 @@ import { dbConnect } from '@/lib/dbConnect'
 import { NextRequest } from 'next/server'
 import Group from '@/models/user_models/group.model'
 import { VerifyUser } from '@/lib/verifyUser/userVerification'
-import { createTaskSchema } from '@/lib/schemas/task/createTask'
 import Task from '@/models/user_models/task.model'
 
-export async function PATCH(req: NextRequest) {
+export async function DELETE(req: NextRequest) {
   try {
     const auth = await VerifyUser()
     if (!auth.success) return auth.response
@@ -19,68 +18,59 @@ export async function PATCH(req: NextRequest) {
     await dbConnect()
 
     const { searchParams } = new URL(req.url)
-    const taskId = searchParams.get('taskId')
     const groupId = searchParams.get('groupId')
+    
+    // Expecting an array of IDs: { taskIds: ["id1", "id2"] }
+    const { taskIds } = await req.json()
 
-    if (
-      !taskId ||
-      !groupId ||
-      !taskId.match(/^[0-9a-fA-F]{24}$/) ||
-      !groupId.match(/^[0-9a-fA-F]{24}$/)
-    ) {
+    // 1. Validation: Ensure groupId exists and taskIds is a non-empty array
+    if (!groupId || !Array.isArray(taskIds) || taskIds.length === 0) {
       return createResponse(
-        { success: false, message: 'Invalid taskId or groupId' },
+        { success: false, message: 'Invalid groupId or no taskIds provided' },
         StatusCode.BAD_REQUEST
       )
     }
 
-    // Ensure user is group member
+    // 2. Ensure user is a member of the group
+    // Note: Per your constraint, this group likely only has 1 member entry.
     const isMember = await Group.exists({
       _id: groupId,
-      'members.userId': user.id,
+      'accessTo.userId': user.id,
     })
 
     if (!isMember) {
       return createResponse({ success: false, message: 'Not a group member' }, StatusCode.FORBIDDEN)
     }
 
-    // Ensure task belongs to group
-    const task = await Task.findOne({
-      _id: taskId,
-      groupId,
+    // 3. Delete Operation:
+    // Only delete tasks that:
+    // - Are in the provided ID list
+    // - Belong to this specific groupId
+    // - Were created by this specific user (Owner check)
+    const deleteResult = await Task.deleteMany({
+      _id: { $in: taskIds },
+      groupId: groupId,
+      'createdBy.userId': user.id 
     })
 
-    if (!task) {
-      return createResponse({ success: false, message: 'Task not found' }, StatusCode.NOT_FOUND)
-    }
-
-    if (task.createdBy.userId.toString() !== user.id) {
+    if (deleteResult.deletedCount === 0) {
       return createResponse(
-        { success: false, message: 'Only Creator of Task can Delete the Task' },
-        StatusCode.BAD_REQUEST
+        { success: false, message: 'No tasks found to delete or unauthorized' },
+        StatusCode.NOT_FOUND
       )
     }
-
-    const deletedTask = await Task.findOneAndDelete({
-      _id: taskId,
-      groupId,
-    })
 
     return createResponse(
       {
         success: true,
-        message: 'Task deleted successfully',
-        data: deletedTask,
+        message: `${deleteResult.deletedCount} tasks deleted successfully`,
+        data: deleteResult,
       },
       StatusCode.OK
     )
   } catch (error) {
     return createResponse(
-      {
-        success: false,
-        message: 'Error deleting task',
-        error,
-      },
+      { success: false, message: 'Error deleting tasks', error },
       StatusCode.INTERNAL_ERROR
     )
   }

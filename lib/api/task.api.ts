@@ -53,3 +53,8 @@ export const updateTask = async (_id: string, field: string, value: string) => {
     }
   }
 }
+
+export const fetchGroupTask = async (taskId: string, groupId: string) => {
+  const res = await axios.get(`/api/member/task/getTaskByTaskId?taskId=${taskId}&groupId=${groupId}`)
+  return res.data.data
+}
