@@ -19,9 +19,12 @@ export async function DELETE(req: NextRequest) {
 
     const { searchParams } = new URL(req.url)
     const groupId = searchParams.get('groupId')
-    
+  
     // Expecting an array of IDs: { taskIds: ["id1", "id2"] }
-    const { taskIds } = await req.json()
+    const body = await req.json()
+    const taskIds = body
+
+    console.log(groupId, taskIds)
 
     // 1. Validation: Ensure groupId exists and taskIds is a non-empty array
     if (!groupId || !Array.isArray(taskIds) || taskIds.length === 0) {
@@ -69,6 +72,7 @@ export async function DELETE(req: NextRequest) {
       StatusCode.OK
     )
   } catch (error) {
+    console.log(error)
     return createResponse(
       { success: false, message: 'Error deleting tasks', error },
       StatusCode.INTERNAL_ERROR

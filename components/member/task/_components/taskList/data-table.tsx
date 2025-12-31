@@ -1,4 +1,5 @@
 'use client'
+
 import * as React from "react"
 import {
   ColumnDef,
@@ -27,6 +28,9 @@ import { Button } from "@/components/ui/button"
 import { DataTablePagination } from './data-table-page-size'
 import { DataTableViewOptions } from './data-table-column-toggle'
 import CreateTask from "../CreateTask"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { createTask, deleteTask } from "@/lib/api/task.api"
+import { toast } from "sonner"
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -39,6 +43,26 @@ export function DataTable<TData, TValue>({ columns, data, meta }: DataTableProps
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [rowSelection, setRowSelection] = React.useState({})
 
+  const queryClient = useQueryClient()
+
+  console.log(meta)
+  const { mutate, isPending } = useMutation({
+    mutationFn: (ids: string[]) => deleteTask(meta?.groupId, ids),
+    onSuccess: () => {
+
+      // Invalidate the specific query to refresh the list
+      queryClient.invalidateQueries({
+        queryKey: ['groupTasks', meta?.groupId?.toString()]
+      })
+      toast.success('Tasks deleted successfully')
+      setRowSelection({}) // Clear selection after success
+    },
+    onError: (error: any) => {
+      const errorMessage = error.response?.data?.message || error.message || "Failed to delete tasks";
+      toast.error(errorMessage);
+    },
+  })
+
   const table = useReactTable({
     data,
     columns,
@@ -49,7 +73,7 @@ export function DataTable<TData, TValue>({ columns, data, meta }: DataTableProps
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
     onRowSelectionChange: setRowSelection,
-    getRowId: (row: any) => row._id, 
+    getRowId: (row: any) => row._id,
     state: {
       sorting,
       columnFilters,
@@ -59,10 +83,14 @@ export function DataTable<TData, TValue>({ columns, data, meta }: DataTableProps
   })
 
   const handleBulkDelete = () => {
-    console.log(rowSelection)
     const selectedIds = Object.keys(rowSelection);
-    console.log("Initiating Bulk Delete for IDs:", selectedIds);
-    // mutation.mutate(selectedIds);
+
+    if (selectedIds.length === 0) return;
+
+    // Confirm with user 
+    if (window.confirm(`Are you sure you want to delete ${selectedIds.length} items?`)) {
+      mutate(selectedIds);
+    }
   }
 
   const selectedCount = Object.keys(rowSelection).length;

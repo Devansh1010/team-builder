@@ -44,9 +44,9 @@ export const updateTask = async (_id: string, operation: string, value: any) => 
 
     return response.data;
   } catch (error) {
-    // Re-throw the error so useMutation can see it
+
     if (axios.isAxiosError(error) && error.response) {
-      // Throw the actual data from the backend (which contains your success: false, message: "...")
+
       throw error.response.data;
     }
     throw new Error("An unexpected error occurred");
@@ -57,3 +57,19 @@ export const fetchGroupTask = async (taskId: string, groupId: string) => {
   const res = await axios.get(`/api/member/task/getTaskByTaskId?taskId=${taskId}&groupId=${groupId}`)
   return res.data.data
 }
+
+export const deleteTask = async (groupId: string, taskIds: any) => {
+  try {
+    const response = await axios.delete(`/api/member/task/deleteTask?groupId=${groupId}`,
+      {data: taskIds}
+    );
+
+    return response.data;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response) {
+
+      throw error.response.data;
+    }
+    throw new Error("An unexpected error occurred");
+  }
+};

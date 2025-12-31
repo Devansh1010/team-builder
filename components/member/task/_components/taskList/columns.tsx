@@ -27,8 +27,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-import { useQuery } from '@tanstack/react-query'
-import { fetchCurrentActiveUser } from '@/lib/api/user.api'
+
 
 export type Task = {
   _id: string
@@ -75,7 +74,6 @@ export const columns: ColumnDef<Task>[] = [
     cell: ({ row, table }) => {
       // 1. Get the ID from the table meta
       const activeUserId = (table.options.meta as any)?.activeUserId;
-      console.log(activeUserId)
 
       const isAssignedToMe = (row.original as any).assignedTo?.some(
         (a: any) => a.userId?.toString() === activeUserId?.toString()
