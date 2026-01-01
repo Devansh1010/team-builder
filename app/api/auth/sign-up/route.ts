@@ -9,8 +9,6 @@ export async function POST(request: Request) {
   try {
     const { username, email, password, fname, lname } = await request.json()
 
-    console.log(username, email, fname, lname, password)
-
     const existingUserVerifiedByUsername = await Admin.findOne({
       username,
       isVerified: true,
@@ -37,8 +35,6 @@ export async function POST(request: Request) {
     }
 
     const existingUserByEmail = await Admin.findOne({ email })
-
-    console.log('Existing User:- ', existingUserByEmail)
 
     const verifyCode = Math.floor(10000 + Math.random() * 90000).toString()
 
@@ -112,8 +108,6 @@ export async function POST(request: Request) {
         verifyCodeExpires: expiryDate,
         isVerified: false,
       })
-
-      console.log(newUser)
 
       const emailResponce = await sendVerification(email, username, verifyCode)
 

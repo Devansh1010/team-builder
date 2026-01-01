@@ -4,6 +4,7 @@ export interface IUserData {
   id?: Schema.Types.ObjectId
   email: string
   username: string
+  batchId: Schema.Types.ObjectId
 }
 
 const userDataSchema = new Schema<IUserData>({
@@ -15,6 +16,11 @@ const userDataSchema = new Schema<IUserData>({
     type: String,
     required: true,
   },
+
+  batchId: {
+    type: Schema.Types.ObjectId,
+    ref: 'Batch'
+  }
 })
 
 const UserData = models.UserData || model<IUserData>('UserData', userDataSchema)

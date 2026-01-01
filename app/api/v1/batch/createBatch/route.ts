@@ -79,19 +79,13 @@ export async function POST(req: NextRequest) {
     }
 
     // Remove duplicates
-    const uniqueEmails = [...new Set(emails), 'devanshprajapati36@gmail.com']
-
-    // Prepare userdata docs
-    const docs = uniqueEmails.map((email) => ({
-      email,
-      username: '',
-    }))
+    const uniqueEmails = [...new Set(emails)]
 
     const session = await mongoose.startSession()
     session.startTransaction()
 
     try {
-      let newBatch = await Batch.create(
+      const createdBatches = await Batch.create(
         [
           {
             batch_name,
@@ -102,7 +96,16 @@ export async function POST(req: NextRequest) {
         { session }
       )
 
-      // 2️⃣ Insert user data entries
+      const batchId = createdBatches[0]._id;
+
+      // Prepare userdata docs with the batchId
+      const docs = uniqueEmails.map((email) => ({
+        email,
+        username: '',
+        batchId: batchId, 
+      }))
+
+      // Insert user data entries
       await UserData.insertMany(docs, { session })
 
       await session.commitTransaction()
