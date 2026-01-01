@@ -10,6 +10,7 @@ export async function POST(req: NextRequest) {
     try {
 
         const { email } = await req.json();
+        console.log(email)
 
         // 1. Validation: Check if email exists in request
         if (!email) {
@@ -40,7 +41,7 @@ export async function POST(req: NextRequest) {
 
         // 5. Store in Valkey (TTL: 10 min)
 
-        await valkey.setex(`reset_token:${token}`, 600, isAdminExist.email);
+        await valkey.setEx(`reset_token:${token}`, 600, isAdminExist.email);
 
         // 6. Send Email with Token and Username
         const emailResponse = await sendForgotPassword(
