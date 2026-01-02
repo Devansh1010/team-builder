@@ -39,7 +39,7 @@ export default function AdminProfilePage() {
   const handleResetPassword = async () => {
     setIsResetting(true)
     try {
-      await axios.post('/api/auth/forgot-password', { email: 'devanshprajapati36@gmail.com' })
+      await axios.post('/api/auth/forgot-password', { email: admin.email })
       toast.success('Reset link sent to your email!')
     } catch (error) {
       toast.error('Could not initiate password reset')
