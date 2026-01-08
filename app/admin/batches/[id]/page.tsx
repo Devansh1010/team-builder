@@ -41,10 +41,10 @@ export default function Page({ params }: { params: { id: string } }) {
       const res = await axios.get(`/api/v1/batch/getBatchById?batchId=${resolvedId}`)
 
       if (res.data.success) {
-        const emailsObj = res.data.data.users // {0: "a@gmail.com", 1: "b@gmail.com"}
+        const emailsObj = res.data.data.users
 
         const formattedUsers = Object.values(emailsObj).map((email) => ({
-          id: crypto.randomUUID(), // or any id you want to generate
+          id: crypto.randomUUID(),
           email: email as string,
           status: 'pending' as const,
           username: undefined,
@@ -73,8 +73,6 @@ export default function Page({ params }: { params: { id: string } }) {
     if (!resolvedId) return
     getBatch()
   }, [resolvedId])
-
-  console.log(users)
 
   return (
     <div className="w-full mx-auto px-10 py-6">
